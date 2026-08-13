@@ -21,6 +21,7 @@ import spr_coffee from "./objects/coffee.png";
 import spr_redpen from "./objects/redpen.png";
 import spr_stamp from "./objects/stamp.png";
 import spr_badge from "./ui/badge.png";
+import spr_kid from "./characters/kid.png";
 import spr_editor from "./characters/editor.png";
 import spr_editor_1 from "./characters/editor1.png";
 import spr_bust1 from "./characters/bust1.png";
@@ -160,6 +161,7 @@ export const SPRITE_ASSETS: Record<string, SpriteAsset> = {
   "redpen": { src: spr_redpen, w: 12, h: 10 },
   "stamp": { src: spr_stamp, w: 16, h: 11 },
   "badge": { src: spr_badge, w: 16, h: 16 },
+  "kid": { src: spr_kid, w: 20, h: 21 },
   "editor": { src: spr_editor, w: 20, h: 21 },
   "editor1": { src: spr_editor_1, w: 20, h: 21 },
   "bust1": { src: spr_bust1, w: 14, h: 12 },
@@ -282,6 +284,7 @@ export const SPRITE_ASSETS: Record<string, SpriteAsset> = {
  */
 export const ASSETS = {
   characters: {
+    "kid": spr_kid,
     "editor": spr_editor,
     "editor1": spr_editor_1,
     "bust1": spr_bust1,
