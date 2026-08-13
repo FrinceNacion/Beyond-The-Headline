@@ -96,7 +96,7 @@ export function Briefing({
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ boxShadow: `0 0 0 2px ${C.ink}` }}>
-              <PixelSprite name={cs.sprite} scale={1.6} title={cs.building} />
+              <PixelSprite name={cs.sprite} scale={2.1} title={cs.building} />
             </div>
             <div style={{ minWidth: 0 }}>
               <Mono size={14} color={C.paper4}>
@@ -119,7 +119,7 @@ export function Briefing({
 
           <div style={{ marginTop: 6, display: "flex", gap: 6, flex: 1, minHeight: 0 }}>
             <div style={{ flex: "0 0 auto", boxShadow: `0 0 0 2px ${C.ink}`, alignSelf: "flex-start" }}>
-              <PixelSprite name="editor" scale={2} title="Margaret Odell, Editor" />
+              <PixelSprite name="editor1" scale={3} title="Margaret Odell, Editor" />
             </div>
             <div className="bth-scroll" style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
               <Display size={7} color={C.red}>
