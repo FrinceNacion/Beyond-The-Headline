@@ -1,0 +1,210 @@
+Revise the existing game’s asset implementation so that *all pixel-art sprites are loaded and rendered as image assets (PNG/WebP) instead of being represented as a data-driven ASCII/grid-based pixel sprite system*.
+
+### Primary Goal
+
+Replace the current custom sprite representation, where sprites are defined in TypeScript as string[] grids with characters mapped to colors, with a *simple image-based asset system*.
+
+The goal is to make adding, replacing, and editing game assets extremely easy. Designers should be able to create or modify a sprite externally, export it as an image, place it in the project's asset folder, and have the game use that image directly without manually converting pixels into code.
+
+### Asset Architecture
+
+Use a conventional structure such as:
+
+text
+src/
+├── assets/
+│   ├── characters/
+│   │   ├── margaret-odell/
+│   │   │   ├── neutral.png
+│   │   │   ├── concerned.png
+│   │   │   ├── surprised.png
+│   │   │   ├── suspicious.png
+│   │   │   ├── happy.png
+│   │   │   └── angry.png
+│   │   ├── ...
+│   │
+│   ├── objects/
+│   │   ├── coin.png
+│   │   ├── lock.png
+│   │   ├── magnifier.png
+│   │   └── ...
+│   │
+│   ├── locations/
+│   │   ├── school.png
+│   │   ├── cityhall.png
+│   │   └── ...
+│   │
+│   └── ui/
+│       └── ...
+
+Use normal imported image assets or a centralized asset registry rather than embedding pixel data directly inside TypeScript.
+
+### Character Assets
+
+Characters must support multiple image variations without duplicating character logic.
+
+For example:
+
+const margaret = {
+  neutral: margaretNeutral,
+  concerned: margaretConcerned,
+  surprised: margaretSurprised,
+  suspicious: margaretSuspicious,
+  happy: margaretHappy,
+  angry: margaretAngry,
+};
+
+The game should be able to request a character and expression through a simple interface such as:
+
+showCharacter("margaret-odell", "concerned");
+
+The rendering system should automatically resolve the correct image asset.
+
+### Sprite Rendering
+
+Preserve the existing pixel-art appearance.
+
+When displaying the images:
+
+* Use nearest-neighbor scaling.
+* Preserve the original pixel dimensions/aspect ratio.
+* Do not blur, smooth, interpolate, or distort pixel art.
+* Do not automatically recolor or modify the source image.
+* Preserve transparent backgrounds.
+* Allow sprites to be scaled for different screen sizes while maintaining crisp pixels.
+* Keep character proportions consistent with the existing game.
+
+Use an approach equivalent to:
+
+image-rendering: pixelated;
+
+when appropriate.
+
+### Centralized Asset Registry
+
+Create a centralized asset registry so game components do not need to know the physical file paths.
+
+For example:
+
+export const ASSETS = {
+  characters: {
+    margaretOdell: {
+      neutral: margaretNeutral,
+      concerned: margaretConcerned,
+      surprised: margaretSurprised,
+      suspicious: margaretSuspicious,
+      happy: margaretHappy,
+      angry: margaretAngry,
+    },
+  },
+
+  objects: {
+    coin: coinSprite,
+    lock: lockSprite,
+    magnifier: magnifierSprite,
+  },
+};
+
+Game code should reference:
+
+ASSETS.characters.margaretOdell.neutral
+
+rather than:
+
+"../../assets/characters/margaret-odell/neutral.png"
+
+### Remove the Old Sprite System
+
+Refactor the existing implementation so that the game *no longer depends on the ASCII/grid-based sprite definitions*.
+
+Remove or replace:
+
+* Sprite = string[] representations
+* Character-per-pixel definitions
+* Manual pixel grids inside TypeScript
+* Sprite color dictionaries used only for rendering those grids
+* Any custom renderer whose sole purpose is converting characters into pixels
+
+Do not remove unrelated game logic.
+
+Do not redesign the game.
+
+Do not change the existing visual identity.
+
+### Preserve Existing Game Behavior
+
+This is an *asset architecture refactor*, not a game redesign.
+
+Keep unchanged:
+
+* Existing gameplay
+* Game mechanics
+* Level/stage structure
+* Navigation
+* UI
+* Animations
+* Transitions
+* Character positioning
+* Sprite sizes/visual proportions
+* Existing interactions
+* Existing color palette where it is part of the game's visual identity
+
+Only change *how the assets are stored and rendered*.
+
+### Make Adding Assets Easy
+
+The final implementation should make this workflow possible:
+
+text
+1. Create/edit pixel art externally
+        ↓
+2. Export PNG
+        ↓
+3. Put PNG into the appropriate assets folder
+        ↓
+4. Register/import the asset
+        ↓
+5. Use it in the game
+
+There should be *no need to manually translate an image into ASCII pixel data*.
+
+Design the asset system so that adding a new character, expression, object, or location requires minimal code changes.
+
+### Avoid Overengineering
+
+Do not introduce a complicated asset-management framework.
+
+Use the project's existing React/TypeScript architecture and standard image imports wherever possible.
+
+Prefer:
+
+tsx
+<img src={sprite} />
+
+or the equivalent existing rendering mechanism.
+
+If the game currently uses Canvas, use:
+
+ctx.drawImage(sprite, x, y, width, height);
+
+while preserving nearest-neighbor rendering.
+
+### Migration
+
+Migrate the existing sprites to the new image-based system.
+
+For sprites that currently exist only as ASCII/grid definitions, preserve their appearance as closely as possible by replacing them with equivalent image assets.
+
+Make sure all existing references to the old sprite system are updated so that the game continues to work after the migration.
+
+### Final Requirement
+
+The finished game should behave exactly as it did before, but its asset workflow should now be:
+
+*Image → Asset Registry → Game*
+
+instead of:
+
+*ASCII Pixel Grid → Color Mapping → Custom Sprite Renderer → Game*
+
+The key objective is to make the game's pixel-art assets *easy to create, replace, edit, organize, and reuse without manually writing pixel data in TypeScript.
