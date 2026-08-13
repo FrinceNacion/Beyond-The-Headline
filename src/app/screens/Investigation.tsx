@@ -200,7 +200,7 @@ function SocialView(p: {
         </div>
 
         <div style={{ padding: 8, display: "flex", gap: 8, backgroundColor: C.paper }}>
-          <div style={{ flex: "0 0 auto", boxShadow: `0 0 0 2px ${C.ink}` }}>
+          <div style={{ flex: "0 0 auto", boxShadow: `0 0 0 2px ${C.ink}`, alignSelf: "flex-start"  }}>
             <PixelSprite name={s.avatar} scale={2.6} title={s.display} />
           </div>
           <div style={{ flex: 1 }}>
