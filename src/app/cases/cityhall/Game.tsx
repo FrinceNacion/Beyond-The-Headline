@@ -31,7 +31,7 @@ type Bubble = { id: string; x: number; y: number; vx: number; vy: number; d: Dat
 type Pop = { id: number; x: number; y: number; f: number };
 
 /** The play area is worked in percentages so it fits both canvases unchanged. */
-const GRAB_DIST = 9;
+const GRAB_DIST = 6;
 
 function PrivacyRescue({ api }: { api: DrillApi }) {
   const [bubbles, setBubbles] = useState<Bubble[]>([]); // stores all infos currently on screen
@@ -64,7 +64,7 @@ function PrivacyRescue({ api }: { api: DrillApi }) {
   useInterval(() => {
     // everything speeds up as the round runs on, the stranger fastest of all
     const step = 1 + Math.min(0.12, resolved.current * 0.16); // speed ng buble (infos)
-    const reach = 1 + Math.min(1.12, resolved.current * 0.28); // speed ng snoop
+    const reach = 1 + Math.min(0.5, resolved.current * 0.28); // speed ng snoop
     // and the drift gets less predictable the longer you leave a detail out
     const jitter = Math.min(0.34, resolved.current * 0.045);
 
@@ -460,7 +460,7 @@ function CyberShield({ api }: { api: DrillApi }) {
           boxShadow: `inset -3px 0 0 0 ${weak ? C.red : C.green}`,
         }}
       >
-        <PixelSprite name="bust1" scale={2} />
+        <PixelSprite name="kid" scale={2} />
         <div className={weak ? undefined : "bth-pulse"} style={{ backgroundColor: C.ink }}>
           <PixelSprite name={weak ? "shieldDown" : "shield"} scale={2} />
         </div>
