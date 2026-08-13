@@ -1,0 +1,155 @@
+/* Beyond the Headline — chunky, step-timed animation only. Never eased. */
+
+/* Semantic colour axis. Colour-blind mode swaps green for a blue that stays
+   separable from the muted red at every common deficiency. Core gameplay never
+   relies on hue alone — every state also carries a distinct pixel glyph. */
+
+* {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none;     /* IE 10 and IE 11 */
+  user-select: none;         /* Standard syntax (Chrome, Edge, Firefox, Opera) */
+}
+
+:root {
+  --bth-green: #2f6f4e;
+  --bth-green-dark: #1e4a34;
+  --bth-green-light: #48916a;
+}
+.bth-cb {
+  --bth-green: #2f6f8f;
+  --bth-green-dark: #1c4a63;
+  --bth-green-light: #5fa3c4;
+}
+
+/* Keyboard navigation is a first-class path, not a fallback. */
+:focus-visible {
+  outline: 3px solid #d9b57e;
+  outline-offset: 0;
+}
+.bth-kbd :focus-visible {
+  outline: 4px solid #d9b57e;
+  box-shadow: 0 0 0 3px #14181c;
+}
+
+/* Reduced motion: hold the last frame of every step animation. */
+.bth-still *,
+.bth-still {
+  animation: none !important;
+}
+
+* {
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: #0b0e11;
+  overflow: hidden;
+}
+
+/* 2-frame blink */
+@keyframes bth-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.bth-blink {
+  animation: bth-blink 0.9s steps(1, end) infinite;
+}
+
+/* 2-frame brass pulse for the active map node */
+@keyframes bth-pulse {
+  0%,
+  49% {
+    box-shadow: 0 0 0 2px #b08d57;
+  }
+  50%,
+  100% {
+    box-shadow: 0 0 0 4px #d9b57e;
+  }
+}
+.bth-pulse {
+  animation: bth-pulse 0.7s steps(1, end) infinite;
+}
+
+/* 3-frame hotspot nudge */
+@keyframes bth-nudge {
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(0, -2px);
+  }
+  66% {
+    transform: translate(0, 1px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+.bth-nudge {
+  animation: bth-nudge 0.45s steps(1, end) infinite;
+}
+
+/* 4-frame stamp impact */
+@keyframes bth-stamp {
+  0% {
+    transform: rotate(-12deg) scale(2.4);
+    opacity: 0;
+  }
+  25% {
+    transform: rotate(-12deg) scale(1.5);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(-12deg) scale(0.94);
+    opacity: 1;
+  }
+  75% {
+    transform: rotate(-12deg) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-12deg) scale(1);
+    opacity: 1;
+  }
+}
+.bth-stamp {
+  animation: bth-stamp 0.4s steps(1, end) 1 both;
+}
+
+/* 3-frame token rise */
+@keyframes bth-rise {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.bth-rise {
+  animation: bth-rise 0.36s steps(1, end) 1 both;
+}
+
+/* hide scrollbars but keep scrolling */
+.bth-scroll {
+  scrollbar-width: none;
+}
+.bth-scroll::-webkit-scrollbar {
+  display: none;
+}
