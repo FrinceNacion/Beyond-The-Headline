@@ -70,6 +70,7 @@ export type CaseDef = {
   id: string;
   building: string;
   sprite: string;
+  spriteScale?: number;
   title: string;
   tag: string;
   brief: string;
