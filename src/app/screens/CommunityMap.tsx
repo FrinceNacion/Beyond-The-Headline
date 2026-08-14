@@ -252,7 +252,7 @@ export function CommunityMap({
           <Prop sprite="bench" x={square.x - 22} y={square.y + 58} scale={1.6} showLayers={showLayers} />
           <Prop sprite="bench" x={square.x + 66} y={square.y + 58} scale={1.6} showLayers={showLayers} />
 
-          {HOUSES.map((h, i) => (
+          {/*HOUSES.map((h, i) => (
             <Prop
               key={i}
               sprite={h.s}
@@ -263,7 +263,7 @@ export function CommunityMap({
               // dark windows in the unlit houses; town reads as inhabited, not staged
               recolor={h.lit ? undefined : { w: "#2A3138" }}
             />
-          ))}
+          ))*/}
 
           {TREES.map((t, i) => (
             <Prop key={i} sprite={t.s} x={t.x} y={t.y} scale={t.k} showLayers={showLayers} />
