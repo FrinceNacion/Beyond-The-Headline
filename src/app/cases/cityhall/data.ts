@@ -4,6 +4,7 @@ export const cityhallCase: CaseDef = {
   id: "cityhall",
   building: "City Hall",
   sprite: "cityhall",
+  spriteScale: 3.5,
   title: "The Budget That Doubled",
   tag: "CASE 03",
   brief: "A council candidate says spending exploded. The ledger says something quieter.",

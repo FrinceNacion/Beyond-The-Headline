@@ -4,6 +4,7 @@ export const marketCase: CaseDef = {
   id: "market",
   building: "Fourth St. Market",
   sprite: "market",
+  spriteScale: 3,
   title: "Six Dollar Tomatoes",
   tag: "CASE 04",
   brief: "A price outrage story built on one very expensive stall.",
