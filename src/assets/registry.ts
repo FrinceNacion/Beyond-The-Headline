@@ -216,7 +216,7 @@ export const SPRITE_ASSETS: Record<string, SpriteAsset> = {
   "arrowR": { src: spr_arrowR, w: 7, h: 9 },
   "rumor1": { src: spr_rumor1, w: 18, h: 20 },
   "rumor2": { src: spr_rumor2, w: 18, h: 20 },
-  "rumorIcon": { src: spr_rumorIcon, w: 10, h: 12 },
+  "rumorIcon": { src: spr_rumorIcon, w: 18, h: 20 },
   "siftStop": { src: spr_siftStop, w: 12, h: 10 },
   "siftSource": { src: spr_siftSource, w: 12, h: 11 },
   "siftCoverage": { src: spr_siftCoverage, w: 12, h: 10 },

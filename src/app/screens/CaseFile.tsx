@@ -588,7 +588,7 @@ export function CaseFile({
                 >
                   <div style={{ display: "flex", gap: 6 }}>
                     <div style={{ flex: "0 0 auto", boxShadow: `0 0 0 2px ${C.ink}`, alignSelf: "flex-start" }}>
-                      <PixelSprite name="rumorIcon" scale={1.6} title={RUMOR_NAME} />
+                      <PixelSprite name="rumorIcon" scale={1.5} title={RUMOR_NAME} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Mono size={12} color={C.red}>
