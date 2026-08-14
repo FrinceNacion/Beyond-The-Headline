@@ -21,7 +21,7 @@ import { CASE_GAMES } from "./cases/index";
 import { UnderDevGame } from "./cases/UnderDevGame";
 import { STAGE_GAMES } from "./cases/arcade/registry";
 import type { StageResult } from "./cases/arcade/stage";
-import { medalFor, type CaseResult } from "./game/scoring";
+import { medalFor, medalTierForStars, MEDAL_RANK, type MedalType, type CaseResult } from "./game/scoring";
 import { buildRun, timeAttackBonus, type Tier } from "./game/timeattack";
 import { EMPTY_LIFETIME, lifetimeAccuracy } from "./game/progress";
 import { progressMetaFor } from "./game/sift";
@@ -285,7 +285,18 @@ function Game() {
       }
 
       const m = medalFor(r);
-      if (m) setMedals((prev) => ({ ...prev, [cs.id]: m }));
+      const medalKey = medalTierForStars(starsEarned);
+      if (medalKey) {
+        setMedals((prev) => {
+          const existing = prev[cs.id] as MedalType | undefined;
+          if (!existing || (MEDAL_RANK[medalKey] ?? 0) > (MEDAL_RANK[existing] ?? 0)) {
+            return { ...prev, [cs.id]: medalKey };
+          }
+          return prev;
+        });
+      } else if (m && !medals[cs.id]) {
+        setMedals((prev) => ({ ...prev, [cs.id]: m }));
+      }
       // keep the best rating across replays
       setStars((prev) => ({ ...prev, [cs.id]: Math.max(prev[cs.id] ?? 0, starsEarned) }));
       if (r.solved) {
@@ -293,7 +304,7 @@ function Game() {
         setActiveIndex((i) => Math.min(Math.max(i, caseIndex + 1), CASES.length - 1));
       }
     },
-    [cs.id, caseIndex, owned, mode, run, isLastSet, elapsed, runBonus],
+    [cs.id, caseIndex, owned, mode, run, isLastSet, elapsed, runBonus, medals],
   );
 
   /** A drill stage reports the same things a filed case does: what it paid, how
@@ -328,7 +339,18 @@ function Game() {
       }));
       if (!r.cleared) return;
       setStars((prev) => ({ ...prev, [cs.id]: Math.max(prev[cs.id] ?? 0, r.stars) }));
-      setMedals((prev) => ({ ...prev, [cs.id]: r.stars === 3 ? "CLEAN RUN" : "DRILL PASSED" }));
+      const medalKey = medalTierForStars(r.stars);
+      if (medalKey) {
+        setMedals((prev) => {
+          const existing = prev[cs.id] as MedalType | undefined;
+          if (!existing || (MEDAL_RANK[medalKey] ?? 0) > (MEDAL_RANK[existing] ?? 0)) {
+            return { ...prev, [cs.id]: medalKey };
+          }
+          return prev;
+        });
+      } else {
+        setMedals((prev) => ({ ...prev, [cs.id]: r.stars === 3 ? "CLEAN RUN" : "DRILL PASSED" }));
+      }
       setSolved((s) => (s.includes(cs.id) ? s : [...s, cs.id]));
       setActiveIndex((i) => Math.min(Math.max(i, caseIndex + 1), CASES.length - 1));
     },
@@ -580,6 +602,8 @@ function Game() {
             tips={tips}
             rank={rank}
             lifetime={lifetime}
+            medals={medals}
+            stars={stars}
             onTeacher={() => setScreen("teacher")}
             onBack={backFromAside}
           />

@@ -11,6 +11,7 @@ import { CalibrationMeter } from "../components/CalibrationMeter";
 import { formatTime } from "../game/timeattack";
 import { StarRow } from "../components/Stars";
 import { briefingFor, earnedStars, rumorHeadline, starConds, RUMOR_NAME } from "../game/story";
+import { MedalPopup } from "../components/MedalPopup";
 
 /** Personal-best leaderboard card, shown at the end of a Beat the Clock run. */
 function BestTimeCard({
@@ -147,6 +148,7 @@ export function CaseFile({
 }) {
   const [result, setResult] = useState<CaseResult | null>(null);
   const [stars, setStars] = useState<boolean[]>([]);
+  const [showMedalPopup, setShowMedalPopup] = useState(false);
   const submitted = result !== null;
   const clock = mode === "clock" && Boolean(run);
   const conds = starConds(cs.id);
@@ -155,12 +157,21 @@ export function CaseFile({
   const comp = COMPETENCY[sift.competency];
   const habit = HABIT[sift.habit];
 
+  // Delay before showing medal popup (ms) so the star row animation finishes first
+  const MEDAL_POPUP_DELAY_MS = 2000;
+
   const submit = () => {
     const r = scoreCase(cs, marks, timeLeft);
     const s = earnedStars({ cs, result: r, hintsUsed, timeLeft: starTimeLeft ?? timeLeft });
     setResult(r);
     setStars(s);
-    onSubmitted(r, s.filter(Boolean).length);
+    const starCount = s.filter(Boolean).length;
+    onSubmitted(r, starCount);
+    if (starCount > 0 && !clock) {
+      setTimeout(() => {
+        setShowMedalPopup(true);
+      }, MEDAL_POPUP_DELAY_MS);
+    }
   };
 
   return (
@@ -644,6 +655,15 @@ export function CaseFile({
           ) : null}
         </div>
       </div>
+
+      {showMedalPopup && (
+        <MedalPopup
+          caseId={cs.id}
+          caseTitle={cs.title}
+          starsCount={stars.filter(Boolean).length}
+          onClose={() => setShowMedalPopup(false)}
+        />
+      )}
     </div>
   );
 }

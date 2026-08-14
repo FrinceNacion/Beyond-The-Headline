@@ -14,6 +14,9 @@ import spr_gear from "./objects/gear.png";
 import spr_doc from "./objects/doc.png";
 import spr_phone from "./objects/phone.png";
 import spr_quotecard from "./objects/quotecard.png";
+import spr_bronze from "./objects/bronze.png";
+import spr_silver from "./objects/silver.png";
+import spr_gold from "./objects/gold.png";
 import spr_flag from "./ui/flag.png";
 import spr_check from "./ui/check.png";
 import spr_cross from "./ui/cross.png";
@@ -211,6 +214,9 @@ export const SPRITE_ASSETS: Record<string, SpriteAsset> = {
   "clock2": { src: spr_clock2, w: 10, h: 10 },
   "stopwatch": { src: spr_stopwatch, w: 10, h: 10 },
   "medal": { src: spr_medal, w: 10, h: 10 },
+  "bronze": { src: spr_bronze, w: 16, h: 16 },
+  "silver": { src: spr_silver, w: 16, h: 16 },
+  "gold": { src: spr_gold, w: 16, h: 16 },
   "starOn": { src: spr_starOn, w: 9, h: 9 },
   "starOff": { src: spr_starOff, w: 9, h: 9 },
   "arrowR": { src: spr_arrowR, w: 7, h: 9 },

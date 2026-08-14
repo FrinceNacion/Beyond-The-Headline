@@ -162,3 +162,20 @@ export function missedMisleadingCount(cs: CaseDef, marks: Marks): number {
     return h.misleading && (!m || VERDICT[m.verdict].family === "clean");
   }).length;
 }
+
+export type MedalType = "gold" | "silver" | "bronze";
+
+export const MEDAL_RANK: Record<MedalType, number> = {
+  gold: 3,
+  silver: 2,
+  bronze: 1,
+};
+
+/** Medal type based on star count: 3 stars = gold, 2 stars = silver, 1 star = bronze. */
+export function medalTierForStars(starsCount: number): MedalType | null {
+  if (starsCount >= 3) return "gold";
+  if (starsCount === 2) return "silver";
+  if (starsCount === 1) return "bronze";
+  return null;
+}
+

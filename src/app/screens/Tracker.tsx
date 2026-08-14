@@ -16,6 +16,8 @@ import {
   downloadCsv,
   type Lifetime,
 } from "../game/progress";
+import { progressMetaFor } from "../game/sift";
+import { medalTierForStars } from "../game/scoring";
 
 /* Screen 9 — CALIBRATION & COMPETENCY TRACKER.
 
@@ -42,12 +44,16 @@ export function Tracker({
   tips,
   rank,
   lifetime,
+  medals = {},
+  stars = {},
   onBack,
   onTeacher,
 }: {
   tips: number;
   rank: string;
   lifetime: Lifetime;
+  medals?: Record<string, string>;
+  stars?: Record<string, number>;
   onBack: () => void;
   onTeacher: () => void;
 }) {
@@ -237,6 +243,78 @@ export function Tracker({
                         />
                       ))}
                     </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Collected Medals gallery */}
+        <div
+          style={{
+            padding: 8,
+            ...speckle(C.paper, C.paper2, 4),
+            boxShadow: `inset 2px 2px 0 0 ${C.white}, inset -2px -2px 0 0 ${C.paper3}, 0 0 0 2px ${C.ink}`,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+            <Display size={8} color={C.red}>
+              COLLECTED CASE MEDALS & MIL SKILLS
+            </Display>
+            <Mono size={12} color={C.brassDark}>
+              {Object.keys(medals).length}/{CASES.length} MEDALS COLLECTED
+            </Mono>
+          </div>
+          <Body size={13} color={C.ink3} style={{ marginTop: 2 }}>
+            Complete cases to earn Bronze (1 star), Silver (2 stars), or Gold (3 stars) badges in key Media & Information Literacy skills.
+          </Body>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 6 }}>
+            {CASES.map((cs) => {
+              const starCount = stars[cs.id] ?? 0;
+              const medalKey = medals[cs.id] ?? medalTierForStars(starCount);
+              const isGold = medalKey === "gold";
+              const isSilver = medalKey === "silver";
+              const isBronze = medalKey === "bronze";
+              const medalSprite = isGold ? "gold" : isSilver ? "silver" : isBronze ? "bronze" : "medal";
+              const meta = progressMetaFor(cs.id);
+              const comp = COMPETENCY[meta.competency];
+              const isEarned = Boolean(medalKey);
+
+              return (
+                <div
+                  key={cs.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: 6,
+                    backgroundColor: isEarned ? C.paper2 : C.paper3,
+                    boxShadow: `inset -2px -2px 0 0 ${C.paper4}, 0 0 0 2px ${isEarned ? C.brassDark : C.paper4}`,
+                    opacity: isEarned ? 1 : 0.65,
+                  }}
+                >
+                  <div style={{ flex: "0 0 auto", display: "flex", justifyContent: "center", width: 28 }}>
+                    <PixelSprite name={medalSprite} scale={2} desaturate={!isEarned} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Mono size={13} color={C.ink}>
+                      {cs.tag} · {cs.building.toUpperCase()}
+                    </Mono>
+                    <br />
+                    <Mono size={12} color={isEarned ? C.brassDark : C.ink3}>
+                      {isGold
+                        ? "GOLD MEDAL (3/3 STARS)"
+                        : isSilver
+                        ? "SILVER MEDAL (2/3 STARS)"
+                        : isBronze
+                        ? "BRONZE MEDAL (1/3 STARS)"
+                        : "UNEARNED"}
+                    </Mono>
+                    <br />
+                    <Body size={12} color={C.ink3}>
+                      SKILL: {comp ? comp.name : meta.competency.toUpperCase()}
+                    </Body>
                   </div>
                 </div>
               );
