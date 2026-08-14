@@ -6,6 +6,7 @@ import { StarRow } from "../../components/Stars";
 import { usePrefs } from "../../prefs";
 import type { CaseDef } from "../../game/cases";
 import { POINTS_PER_CALL, STAGE_LIVES, STAGE_STARS, type Drill, type DrillApi, type StageResult } from "./stage";
+import { MedalPopup } from "../../components/MedalPopup";
 
 /* The frame every drill runs inside: stage HUD, drill card, gameplay slot,
    the wipe between drills, and the success / failure outcome. Nothing in a
@@ -459,18 +460,40 @@ function Outcome({
   onRetry: () => void;
   onLeave: () => void;
 }) {
+  const starCount = stars.filter(Boolean).length;
+  const [showMedal, setShowMedal] = useState(false);
+  const MEDAL_POPUP_DELAY_MS = 1400;
+
+  useEffect(() => {
+    if (cleared && starCount > 0) {
+      const timer = setTimeout(() => {
+        setShowMedal(true);
+      }, MEDAL_POPUP_DELAY_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [cleared, starCount]);
+
   return (
-    <Overlay>
-      <div
-        style={{
-          width: 460,
-          maxWidth: "94%",
-          padding: 14,
-          ...speckle(C.paper, C.paper2, 4),
-          boxShadow: `inset 3px 3px 0 0 ${C.white}, inset -3px -3px 0 0 ${C.paper3}, 0 0 0 3px ${C.ink}`,
-          textAlign: "center",
-        }}
-      >
+    <>
+      {showMedal && (
+        <MedalPopup
+          caseId={cs.id}
+          caseTitle={cs.title}
+          starsCount={starCount}
+          onClose={() => setShowMedal(false)}
+        />
+      )}
+      <Overlay>
+        <div
+          style={{
+            width: 460,
+            maxWidth: "94%",
+            padding: 14,
+            ...speckle(C.paper, C.paper2, 4),
+            boxShadow: `inset 3px 3px 0 0 ${C.white}, inset -3px -3px 0 0 ${C.paper3}, 0 0 0 3px ${C.ink}`,
+            textAlign: "center",
+          }}
+        >
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <PixelSprite name={cleared ? "check" : "cross"} scale={2} />
           <Display size={14} color={cleared ? C.green : C.red}>
@@ -540,7 +563,8 @@ function Outcome({
         </div>
       </div>
     </Overlay>
-  );
+  </>
+);
 }
 
 /** Shared modal scrim — flat ink, never a blur. */

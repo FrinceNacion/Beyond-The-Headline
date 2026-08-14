@@ -377,7 +377,19 @@ export function CommunityMap({
                   ) : null}
                   {medals[cs.id] ? (
                     <div style={{ position: "absolute", right: -10, bottom: -6, display: "flex", alignItems: "center" }}>
-                      <PixelSprite name="medal" scale={1.4} title={medals[cs.id]} />
+                      <PixelSprite
+                        name={
+                          medals[cs.id] === "gold"
+                            ? "gold"
+                            : medals[cs.id] === "silver"
+                            ? "silver"
+                            : medals[cs.id] === "bronze"
+                            ? "bronze"
+                            : "medal"
+                        }
+                        scale={1.4}
+                        title={medals[cs.id].toUpperCase()}
+                      />
                     </div>
                   ) : null}
                 </div>
@@ -398,7 +410,7 @@ export function CommunityMap({
                     <>
                       <br />
                       <Mono size={11} color={C.brassLight}>
-                        {medals[cs.id]}
+                        {medals[cs.id].toUpperCase()}
                       </Mono>
                     </>
                   ) : null}
