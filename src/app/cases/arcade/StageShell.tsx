@@ -266,7 +266,7 @@ export function StageShell({
       </div>
 
       {/* --------------------------------------------------------- gameplay */}
-      <div style={{ flex: 1, minHeight: 0, position: "relative", ...dither(C.ink, C.ink2, 6) }}>
+      <div style={{ flex: 1, minHeight: 0, position: "relative", backgroundColor: "transparent" }}>
         {phase === "play" || phase === "card" ? (
           <drill.Component key={`${run}-${drill.id}`} api={api} />
         ) : null}

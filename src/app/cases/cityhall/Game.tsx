@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { C, speckle } from "../../game/palette";
 import { Body, Display, Mono, PixelMeter, PixelSprite } from "../../components/Pixel";
+import caseBg from "../../../assets/backgrounds/police.png";
 import { StageShell, useInterval } from "../arcade/StageShell";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import type { CaseDef } from "../../game/cases";
+
+const CITYHALL_BACKGROUND = {
+  backgroundImage: `url(${caseBg})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  imageRendering: "pixelated" as const,
+};
 
 /* Stage 3 — Privacy Protection. A notch quicker than the library: the first
    drill is pure reflex against a stranger crossing the room, the second keeps
@@ -649,15 +657,24 @@ export function CityHallStage({
 }) {
   const drills = useMemo(() => CITYHALL_DRILLS, []);
   return (
-    <StageShell
-      cs={cs}
-      tips={tips}
-      rank={rank}
-      index={index}
-      drills={drills}
-      clockFrame={clockFrame}
-      onComplete={onComplete}
-      onExit={onExit}
-    />
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        ...CITYHALL_BACKGROUND,
+      }}
+    >
+      <StageShell
+        cs={cs}
+        tips={tips}
+        rank={rank}
+        index={index}
+        drills={drills}
+        clockFrame={clockFrame}
+        onComplete={onComplete}
+        onExit={onExit}
+      />
+    </div>
   );
 }

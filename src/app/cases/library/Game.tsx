@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { C, speckle } from "../../game/palette";
 import { Body, Display, Mono, PixelSprite } from "../../components/Pixel";
+import librarybg from "../../../assets/backgrounds/library.png";
 import { StageShell, useInterval } from "../arcade/StageShell";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import type { CaseDef } from "../../game/cases";
@@ -23,11 +30,26 @@ const RULES: { id: Exclude<Kind, "trap">; label: string }[] = [
 const TARGET_LEN = 10;
 
 const POOL: { ch: string; kind: Kind }[] = [
-  ...["Q", "R", "T", "K", "M", "B", "W"].map((ch) => ({ ch, kind: "upper" as Kind })),
-  ...["a", "e", "n", "s", "v", "h", "z"].map((ch) => ({ ch, kind: "lower" as Kind })),
-  ...["3", "7", "9", "4", "2", "6"].map((ch) => ({ ch, kind: "digit" as Kind })),
-  ...["#", "!", "£", "%", "*", "?"].map((ch) => ({ ch, kind: "symbol" as Kind })),
-  ...["1234", "qwerty", "letmein", "0000", "abc", "password"].map((ch) => ({ ch, kind: "trap" as Kind })),
+  ...["Q", "R", "T", "K", "M", "B", "W"].map((ch) => ({
+    ch,
+    kind: "upper" as Kind,
+  })),
+  ...["a", "e", "n", "s", "v", "h", "z"].map((ch) => ({
+    ch,
+    kind: "lower" as Kind,
+  })),
+  ...["3", "7", "9", "4", "2", "6"].map((ch) => ({
+    ch,
+    kind: "digit" as Kind,
+  })),
+  ...["#", "!", "£", "%", "*", "?"].map((ch) => ({
+    ch,
+    kind: "symbol" as Kind,
+  })),
+  ...["1234", "qwerty", "letmein", "0000", "abc", "password"].map((ch) => ({
+    ch,
+    kind: "trap" as Kind,
+  })),
 ];
 
 const TRAP_TELL: Record<string, string> = {
@@ -36,13 +58,16 @@ const TRAP_TELL: Record<string, string> = {
   letmein: "It has been on the top-ten worst list since before you were born.",
   "0000": "Four zeroes is not a number, it is a placeholder.",
   abc: "Three letters in order. The library's old card did better than this.",
-  password: "The word itself. Somehow still the most common one in the country.",
+  password:
+    "The word itself. Somehow still the most common one in the country.",
 };
 
 const COLS = 7;
 
 function PasswordPanic({ api }: { api: DrillApi }) {
-  const [drops, setDrops] = useState<{ id: number; col: number; y: number; ch: string; kind: Kind }[]>([]);
+  const [drops, setDrops] = useState<
+    { id: number; col: number; y: number; ch: string; kind: Kind }[]
+  >([]);
   const [pw, setPw] = useState<{ ch: string; kind: Kind }[]>([]);
   const seq = useRef(0);
   const wait = useRef(0);
@@ -63,26 +88,36 @@ function PasswordPanic({ api }: { api: DrillApi }) {
     return () => window.clearTimeout(t);
   }, [complete, api]);
 
-  useInterval(() => {
-    const keep: typeof drops = [];
-    for (const d of drops) {
-      const y = d.y + 7;
-      if (y < 210) keep.push({ ...d, y });
-    }
+  useInterval(
+    () => {
+      const keep: typeof drops = [];
+      for (const d of drops) {
+        const y = d.y + 7;
+        if (y < 210) keep.push({ ...d, y });
+      }
 
-    // one character at a time, with a trap roughly every fourth drop
-    if (wait.current <= 0 && keep.length < 5) {
-      const wantTrap = seq.current % 4 === 3;
-      const bag = POOL.filter((p) => (wantTrap ? p.kind === "trap" : p.kind !== "trap"));
-      const pick = bag[Math.floor(Math.random() * bag.length)];
-      keep.push({ id: seq.current++, col: Math.floor(Math.random() * COLS), y: -18, ...pick });
-      wait.current = 4;
-    } else {
-      wait.current -= 1;
-    }
+      // one character at a time, with a trap roughly every fourth drop
+      if (wait.current <= 0 && keep.length < 5) {
+        const wantTrap = seq.current % 4 === 3;
+        const bag = POOL.filter((p) =>
+          wantTrap ? p.kind === "trap" : p.kind !== "trap",
+        );
+        const pick = bag[Math.floor(Math.random() * bag.length)];
+        keep.push({
+          id: seq.current++,
+          col: Math.floor(Math.random() * COLS),
+          y: -18,
+          ...pick,
+        });
+        wait.current = 4;
+      } else {
+        wait.current -= 1;
+      }
 
-    setDrops(keep);
-  }, api.running && !complete ? 90 : null);
+      setDrops(keep);
+    },
+    api.running && !complete ? 90 : null,
+  );
 
   const grab = useCallback(
     (id: number) => {
@@ -90,7 +125,11 @@ function PasswordPanic({ api }: { api: DrillApi }) {
       if (!d) return;
       setDrops((cur) => cur.filter((x) => x.id !== id));
       if (d.kind === "trap") {
-        api.call(false, TRAP_TELL[d.ch] ?? "That fragment is on every cracking list there is.");
+        api.call(
+          false,
+          TRAP_TELL[d.ch] ??
+            "That fragment is on every cracking list there is.",
+        );
         return;
       }
       setPw((cur) => [...cur, { ch: d.ch, kind: d.kind }]);
@@ -100,8 +139,17 @@ function PasswordPanic({ api }: { api: DrillApi }) {
   );
 
   return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {/* requirement checklist — the objective, kept visible while you collect */}
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        backgroundImage: `url(${librarybg})`,
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        imageRendering: "pixelated",
+      }}
+    >
       <div
         style={{
           position: "absolute",
@@ -118,7 +166,10 @@ function PasswordPanic({ api }: { api: DrillApi }) {
         }}
       >
         {RULES.map((r, i) => (
-          <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <div
+            key={r.id}
+            style={{ display: "flex", alignItems: "center", gap: 3 }}
+          >
             <PixelSprite name={met[i] ? "check" : "starOff"} scale={1} />
             <Mono size={13} color={met[i] ? C.greenLight : C.paper4}>
               {r.label}
@@ -182,7 +233,11 @@ function PasswordPanic({ api }: { api: DrillApi }) {
             <span
               key={`${p.ch}-${i}`}
               className="bth-stamp"
-              style={{ padding: "1px 4px", backgroundColor: C.paper2, boxShadow: `0 0 0 2px ${C.ink}` }}
+              style={{
+                padding: "1px 4px",
+                backgroundColor: C.paper2,
+                boxShadow: `0 0 0 2px ${C.ink}`,
+              }}
             >
               <Mono size={15} color={C.ink}>
                 {p.ch}
@@ -197,7 +252,13 @@ function PasswordPanic({ api }: { api: DrillApi }) {
 
 /* --------------------------------------------------------------- truth swipe */
 
-type Headline = { id: string; outlet: string; text: string; fake: boolean; tell: string };
+type Headline = {
+  id: string;
+  outlet: string;
+  text: string;
+  fake: boolean;
+  tell: string;
+};
 
 const HEADLINES: Headline[] = [
   {
@@ -299,8 +360,30 @@ function TruthSwipe({ api }: { api: DrillApi }) {
   const lean = Math.max(-1, Math.min(1, dx / 110));
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: 10 }}>
-      <SwipeSide dir="left" label="FAKE" tone={C.red} sprite="swipeLeft" lit={lean < -0.4 || verdict === "fake"} onPick={() => answer(true)} />
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
+        padding: 10,
+        backgroundImage: `url(${librarybg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        imageRendering: "pixelated",
+      }}
+    >
+      <SwipeSide
+        dir="left"
+        label="FAKE"
+        tone={C.red}
+        sprite="swipeLeft"
+        lit={lean < -0.4 || verdict === "fake"}
+        onPick={() => answer(true)}
+      />
 
       <div
         data-interactive="news-card"
@@ -324,12 +407,25 @@ function TruthSwipe({ api }: { api: DrillApi }) {
         <Mono size={13} color={C.paper4}>
           {card.outlet}
         </Mono>
-        <div style={{ marginTop: 6, borderTop: `2px solid ${C.ink}`, paddingTop: 6 }}>
+        <div
+          style={{
+            marginTop: 6,
+            borderTop: `2px solid ${C.ink}`,
+            paddingTop: 6,
+          }}
+        >
           <Display size={11} color={C.ink}>
             {card.text}
           </Display>
         </div>
-        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 5 }}>
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+          }}
+        >
           <PixelSprite name="doc" scale={1} />
           <Mono size={12} color={C.paper4}>
             CARD {i + 1} OF {HEADLINES.length} · SWIPE OR PICK A SIDE
@@ -337,7 +433,14 @@ function TruthSwipe({ api }: { api: DrillApi }) {
         </div>
       </div>
 
-      <SwipeSide dir="right" label="REAL" tone={C.green} sprite="swipeRight" lit={lean > 0.4 || verdict === "real"} onPick={() => answer(false)} />
+      <SwipeSide
+        dir="right"
+        label="REAL"
+        tone={C.green}
+        sprite="swipeRight"
+        lit={lean > 0.4 || verdict === "real"}
+        onPick={() => answer(false)}
+      />
     </div>
   );
 }
@@ -375,7 +478,10 @@ function SwipeSide({
       }}
     >
       <PixelSprite name={sprite} scale={2} />
-      <Display size={9} color={lit ? C.white : tone === C.red ? C.red : C.greenLight}>
+      <Display
+        size={9}
+        color={lit ? C.white : tone === C.red ? C.red : C.greenLight}
+      >
         {dir === "left" ? `◂ ${label}` : `${label} ▸`}
       </Display>
       <Body size={12} color={C.paper3}>
@@ -389,7 +495,8 @@ export const LIBRARY_DRILLS: Drill[] = [
   {
     id: "password",
     name: "PASSWORD PANIC",
-    objective: "Assemble a password that meets all four rules and runs ten characters.",
+    objective:
+      "Assemble a password that meets all four rules and runs ten characters.",
     how: [
       "Tap falling characters to add them to the password.",
       "You need an uppercase, a lowercase, a number and a symbol.",

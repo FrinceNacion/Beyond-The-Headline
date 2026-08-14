@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { C, speckle } from "../../game/palette";
 import { Body, Display, Mono } from "../../components/Pixel";
 import { StageShell, useInterval } from "../arcade/StageShell";
+import ledgerbg from "../../../assets/backgrounds/ledger.png";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import { VERDICTS, type Verdict } from "../../game/mil";
 import type { CaseDef } from "../../game/cases";
@@ -35,11 +36,21 @@ type Chain = {
 const CHAINS: Chain[] = [
   {
     id: "c1",
-    headline: "\u201cBridge shut for three months \u2014 county finally admits it\u201d",
+    headline:
+      "\u201cBridge shut for three months \u2014 county finally admits it\u201d",
     nodes: [
-      { label: "COUNTY RECORD", text: "Engineer's memo: schedule revised from eight to twelve weeks, dated Mar 20." },
-      { label: "THE LEDGER", text: "Confirms the revised twelve-week schedule in writing, same week." },
-      { label: "INK SPILL POST", text: "\u201cCounty finally admits bridge shut three months \u2014 they were hiding it.\u201d" },
+      {
+        label: "COUNTY RECORD",
+        text: "Engineer's memo: schedule revised from eight to twelve weeks, dated Mar 20.",
+      },
+      {
+        label: "THE LEDGER",
+        text: "Confirms the revised twelve-week schedule in writing, same week.",
+      },
+      {
+        label: "INK SPILL POST",
+        text: "\u201cCounty finally admits bridge shut three months \u2014 they were hiding it.\u201d",
+      },
     ],
     breakIndex: 2,
     tell: "Twelve weeks is roughly three months \u2014 the number holds up. \u2018Finally admits\u2019 and \u2018hiding it\u2019 is the part nobody's record supports.",
@@ -48,42 +59,81 @@ const CHAINS: Chain[] = [
     id: "c2",
     headline: "\u201cBakery ordered closed after health violations\u201d",
     nodes: [
-      { label: "HEALTH DEPT.", text: "Three minor violations logged Mar 12, corrected before follow-up. No closure order." },
-      { label: "THE LEDGER", text: "Rushed afternoon edition: \u201cBakery ordered closed after health violations.\u201d" },
-      { label: "REPOSTED", text: "Shared thousands of times under the Ledger's own headline, unchanged." },
+      {
+        label: "HEALTH DEPT.",
+        text: "Three minor violations logged Mar 12, corrected before follow-up. No closure order.",
+      },
+      {
+        label: "THE LEDGER",
+        text: "Rushed afternoon edition: \u201cBakery ordered closed after health violations.\u201d",
+      },
+      {
+        label: "REPOSTED",
+        text: "Shared thousands of times under the Ledger's own headline, unchanged.",
+      },
     ],
     breakIndex: 1,
     tell: "The repost just carried the Ledger's own headline along. The error started at the desk \u2014 nobody downstream invented it.",
   },
   {
     id: "c3",
-    headline: "\u201cScam calls have doubled in Rosewood this year, watchdog confirms\u201d",
+    headline:
+      "\u201cScam calls have doubled in Rosewood this year, watchdog confirms\u201d",
     nodes: [
-      { label: "WATCHDOG REPORT", text: "Impersonation-scam calls up 40% this quarter versus last quarter." },
-      { label: "THE LEDGER", text: "\u201cScam calls have doubled in Rosewood this year, watchdog confirms.\u201d" },
-      { label: "SOCIAL SHARE", text: "Passed along with the Ledger's own line, word for word." },
+      {
+        label: "WATCHDOG REPORT",
+        text: "Impersonation-scam calls up 40% this quarter versus last quarter.",
+      },
+      {
+        label: "THE LEDGER",
+        text: "\u201cScam calls have doubled in Rosewood this year, watchdog confirms.\u201d",
+      },
+      {
+        label: "SOCIAL SHARE",
+        text: "Passed along with the Ledger's own line, word for word.",
+      },
     ],
     breakIndex: 1,
     tell: "A 40% quarterly rise became \u2018doubled this year\u2019 on the way through the newsroom. The report never said that \u2014 the paper did.",
   },
   {
     id: "c4",
-    headline: "\u201cSchool forcing kids into mandatory internet class, no parental say\u201d",
+    headline:
+      "\u201cSchool forcing kids into mandatory internet class, no parental say\u201d",
     nodes: [
-      { label: "BOARD MINUTES", text: "New digital-literacy elective approved, opt-in, public meeting Mar 4." },
-      { label: "THE LEDGER", text: "\u201cRosewood High adds optional digital-literacy elective next term.\u201d" },
-      { label: "PARENT GROUP POST", text: "\u201cSchool forcing kids into mandatory internet class \u2014 no parental say.\u201d" },
+      {
+        label: "BOARD MINUTES",
+        text: "New digital-literacy elective approved, opt-in, public meeting Mar 4.",
+      },
+      {
+        label: "THE LEDGER",
+        text: "\u201cRosewood High adds optional digital-literacy elective next term.\u201d",
+      },
+      {
+        label: "PARENT GROUP POST",
+        text: "\u201cSchool forcing kids into mandatory internet class \u2014 no parental say.\u201d",
+      },
     ],
     breakIndex: 2,
     tell: "\u2018Optional\u2019 became \u2018mandatory,\u2019 and a public board vote became \u2018no parental say.\u2019 The paper had it right; the post flipped it.",
   },
   {
     id: "c5",
-    headline: "\u201cCouncil spying on residents 24/7, keeping footage forever\u201d",
+    headline:
+      "\u201cCouncil spying on residents 24/7, keeping footage forever\u201d",
     nodes: [
-      { label: "COUNCIL RELEASE", text: "Traffic cameras at three junctions, monitoring only, 30-day retention." },
-      { label: "THE LEDGER", text: "\u201cCouncil installs traffic cameras at three junctions, 30-day retention.\u201d" },
-      { label: "CHATTR POST", text: "\u201cCouncil spying on residents 24/7, keeping footage forever.\u201d" },
+      {
+        label: "COUNCIL RELEASE",
+        text: "Traffic cameras at three junctions, monitoring only, 30-day retention.",
+      },
+      {
+        label: "THE LEDGER",
+        text: "\u201cCouncil installs traffic cameras at three junctions, 30-day retention.\u201d",
+      },
+      {
+        label: "CHATTR POST",
+        text: "\u201cCouncil spying on residents 24/7, keeping footage forever.\u201d",
+      },
     ],
     breakIndex: 2,
     tell: "Traffic monitoring with a 30-day limit became permanent surveillance somewhere between the post office and the timeline.",
@@ -92,9 +142,18 @@ const CHAINS: Chain[] = [
     id: "c6",
     headline: "\u201cPost office closing Rosewood branch for good\u201d",
     nodes: [
-      { label: "ROYAL MAIL NOTICE", text: "Temporary route changes for two weeks \u2014 staff training, not closure." },
-      { label: "THE LEDGER", text: "\u201cPost office warns of temporary delivery changes this fortnight.\u201d" },
-      { label: "CHATTR POST", text: "\u201cPost office closing Rosewood branch for good.\u201d" },
+      {
+        label: "ROYAL MAIL NOTICE",
+        text: "Temporary route changes for two weeks \u2014 staff training, not closure.",
+      },
+      {
+        label: "THE LEDGER",
+        text: "\u201cPost office warns of temporary delivery changes this fortnight.\u201d",
+      },
+      {
+        label: "CHATTR POST",
+        text: "\u201cPost office closing Rosewood branch for good.\u201d",
+      },
     ],
     breakIndex: 2,
     tell: "Two weeks of training became \u2018for good\u2019 on the timeline. The paper's own wording never said closed, let alone forever.",
@@ -137,7 +196,15 @@ function TraceTheChain({ api }: { api: DrillApi }) {
   const nodes = chain.nodes.slice(0, 3) as ChainNode[];
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        ...LEDGER_BACKGROUND,
+      }}
+    >
       <div style={{ padding: "8px 12px", textAlign: "center" }}>
         <Mono size={12} color={C.paper4}>
           CLAIM {idx + 1}/{order.length} {"\u00b7"} WHERE DID IT BREAK?
@@ -149,8 +216,23 @@ function TraceTheChain({ api }: { api: DrillApi }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 10px 14px" }}>
-        <div style={{ display: "flex", alignItems: "center", width: "100%", maxWidth: 720 }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "0 10px 14px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            maxWidth: 720,
+          }}
+        >
           {nodes.map((n, i) => (
             <React.Fragment key={n.label}>
               <button
@@ -179,7 +261,10 @@ function TraceTheChain({ api }: { api: DrillApi }) {
                 </div>
               </button>
               {i < 2 ? (
-                <div style={{ flex: "0 0 auto", padding: "0 6px" }} aria-hidden="true">
+                <div
+                  style={{ flex: "0 0 auto", padding: "0 6px" }}
+                  aria-hidden="true"
+                >
                   <Mono size={16} color={C.brass}>
                     {"\u2192"}
                   </Mono>
@@ -260,7 +345,20 @@ const DIAL_CLAIMS: DialClaim[] = [
   },
 ];
 
-const DIAL_ORDER: Verdict[] = ["checks_out", "biased", "context", "misleading", "false"];
+const DIAL_ORDER: Verdict[] = [
+  "checks_out",
+  "biased",
+  "context",
+  "misleading",
+  "false",
+];
+
+const LEDGER_BACKGROUND = {
+  backgroundImage: `url(${ledgerbg})`,
+  backgroundSize: "contain",
+  backgroundPosition: "center",
+  imageRendering: "pixelated" as const,
+};
 
 function SetTheDial({ api }: { api: DrillApi }) {
   const order = useMemo(() => shuffled(DIAL_CLAIMS), []);
@@ -279,20 +377,23 @@ function SetTheDial({ api }: { api: DrillApi }) {
 
   // needle sweeps end to end, a little faster with every claim cleared
   const speed = Math.max(110, 230 - idx * 12);
-  useInterval(() => {
-    if (answered.current) return;
-    setZone((z) => {
-      let n = z + dir.current;
-      if (n >= DIAL_ORDER.length) {
-        n = DIAL_ORDER.length - 2;
-        dir.current = -1;
-      } else if (n < 0) {
-        n = 1;
-        dir.current = 1;
-      }
-      return n;
-    });
-  }, api.running ? speed : null);
+  useInterval(
+    () => {
+      if (answered.current) return;
+      setZone((z) => {
+        let n = z + dir.current;
+        if (n >= DIAL_ORDER.length) {
+          n = DIAL_ORDER.length - 2;
+          dir.current = -1;
+        } else if (n < 0) {
+          n = 1;
+          dir.current = 1;
+        }
+        return n;
+      });
+    },
+    api.running ? speed : null,
+  );
 
   const lockIn = useCallback(() => {
     if (!claim || answered.current || !api.running) return;
@@ -305,8 +406,24 @@ function SetTheDial({ api }: { api: DrillApi }) {
   if (!claim) return null;
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 14 }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        ...LEDGER_BACKGROUND,
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 14,
+        }}
+      >
         <div
           style={{
             width: 480,
@@ -348,11 +465,15 @@ function SetTheDial({ api }: { api: DrillApi }) {
                     flex: 1,
                     padding: "6px 2px",
                     textAlign: "center",
-                    backgroundColor: v.id === DIAL_ORDER[zone] ? v.color : C.paper3,
+                    backgroundColor:
+                      v.id === DIAL_ORDER[zone] ? v.color : C.paper3,
                     boxShadow: `0 0 0 2px ${C.ink}`,
                   }}
                 >
-                  <Mono size={12} color={v.id === DIAL_ORDER[zone] ? C.white : C.paper4}>
+                  <Mono
+                    size={12}
+                    color={v.id === DIAL_ORDER[zone] ? C.white : C.paper4}
+                  >
                     {v.code}
                   </Mono>
                 </div>
@@ -369,7 +490,9 @@ function SetTheDial({ api }: { api: DrillApi }) {
             </div>
           </div>
 
-          <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
+          <div
+            style={{ marginTop: 14, display: "flex", justifyContent: "center" }}
+          >
             <button
               type="button"
               data-interactive="chip"
@@ -413,7 +536,8 @@ export const NEWSOFFICE_DRILLS: Drill[] = [
   {
     id: "dial",
     name: "SET THE DIAL",
-    objective: "Lock the gauge on the true state of each claim as the needle sweeps past it.",
+    objective:
+      "Lock the gauge on the true state of each claim as the needle sweeps past it.",
     how: [
       "The needle sweeps the five-state gauge on its own \u2014 CHECKS OUT to FALSE.",
       "Press LOCK IN the moment it sits over the right zone for the claim on screen.",

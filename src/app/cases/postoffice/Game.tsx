@@ -1,6 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { C, speckle } from "../../game/palette";
 import { Body, Display, Mono, PixelSprite } from "../../components/Pixel";
+import postofficeBg from "../../../assets/backgrounds/postoffice.png";
 import { StageShell, useInterval } from "../arcade/StageShell";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import type { CaseDef } from "../../game/cases";
@@ -79,8 +87,14 @@ const LANE_TOP = [8, 74, 140];
 
 function InboxEscape({ api }: { api: DrillApi }) {
   const lane = useRef<HTMLDivElement | null>(null);
-  const [items, setItems] = useState<{ id: string; x: number; row: number; email: Email }[]>([]);
-  const [drag, setDrag] = useState<{ id: string; pointerX: number; originX: number } | null>(null);
+  const [items, setItems] = useState<
+    { id: string; x: number; row: number; email: Email }[]
+  >([]);
+  const [drag, setDrag] = useState<{
+    id: string;
+    pointerX: number;
+    originX: number;
+  } | null>(null);
   const next = useRef(0);
   const wait = useRef(0);
   const rows = useRef(0);
@@ -95,33 +109,41 @@ function InboxEscape({ api }: { api: DrillApi }) {
     [api],
   );
 
-  useInterval(() => {
-    const openX = laneW() - 110;
+  useInterval(
+    () => {
+      const openX = laneW() - 110;
 
-    // step the belt: anything that reaches the tray is judged as "opened"
-    const keep: typeof items = [];
-    for (const it of items) {
-      if (drag?.id === it.id) {
-        keep.push(it);
-        continue;
+      // step the belt: anything that reaches the tray is judged as "opened"
+      const keep: typeof items = [];
+      for (const it of items) {
+        if (drag?.id === it.id) {
+          keep.push(it);
+          continue;
+        }
+        const x = it.x + 3;
+        if (x >= openX) resolve(it.email, false);
+        else keep.push({ ...it, x });
       }
-      const x = it.x + 3;
-      if (x >= openX) resolve(it.email, false);
-      else keep.push({ ...it, x });
-    }
 
-    // hand out the next envelope on a steady beat, never more than three at once
-    if (wait.current <= 0 && next.current < INBOX.length && keep.length < 3) {
-      const email = INBOX[next.current++];
-      keep.push({ id: email.id, x: SHRED_X + 24, row: rows.current++ % LANE_TOP.length, email });
-      wait.current = 22;
-    } else {
-      wait.current -= 1;
-    }
+      // hand out the next envelope on a steady beat, never more than three at once
+      if (wait.current <= 0 && next.current < INBOX.length && keep.length < 3) {
+        const email = INBOX[next.current++];
+        keep.push({
+          id: email.id,
+          x: SHRED_X + 24,
+          row: rows.current++ % LANE_TOP.length,
+          email,
+        });
+        wait.current = 22;
+      } else {
+        wait.current -= 1;
+      }
 
-    setItems(keep);
-    if (next.current >= INBOX.length && !keep.length) api.finish();
-  }, api.running ? 90 : null);
+      setItems(keep);
+      if (next.current >= INBOX.length && !keep.length) api.finish();
+    },
+    api.running ? 90 : null,
+  );
 
   /* ------------------------------------------------------------- dragging */
   useEffect(() => {
@@ -130,7 +152,16 @@ function InboxEscape({ api }: { api: DrillApi }) {
       setItems((cur) =>
         cur.map((it) =>
           it.id === drag.id
-            ? { ...it, x: Math.max(0, Math.min(laneW() - CARD_W, drag.originX + (e.clientX - drag.pointerX))) }
+            ? {
+                ...it,
+                x: Math.max(
+                  0,
+                  Math.min(
+                    laneW() - CARD_W,
+                    drag.originX + (e.clientX - drag.pointerX),
+                  ),
+                ),
+              }
             : it,
         ),
       );
@@ -163,10 +194,33 @@ function InboxEscape({ api }: { api: DrillApi }) {
   );
 
   return (
-    <div ref={lane} style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+    <div
+      ref={lane}
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        backgroundImage: `url(${postofficeBg})`,
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        imageRendering: "pixelated",
+      }}
+    >
       {/* shredder on the left, OPEN slot on the right — the two ends of the belt */}
-      <Zone side="left" width={SHRED_X} sprite="shredder" label="SHRED" tone={C.red} />
-      <Zone side="right" width={110} sprite="inbox" label="OPENED" tone={C.green} />
+      <Zone
+        side="left"
+        width={SHRED_X}
+        sprite="shredder"
+        label="SHRED"
+        tone={C.red}
+      />
+      <Zone
+        side="right"
+        width={110}
+        sprite="inbox"
+        label="OPENED"
+        tone={C.green}
+      />
 
       {items.map((it) => (
         <div
@@ -191,7 +245,15 @@ function InboxEscape({ api }: { api: DrillApi }) {
         >
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <PixelSprite name="envelopeFlag" scale={1} />
-            <Mono size={12} color={C.paper4} style={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+            <Mono
+              size={12}
+              color={C.paper4}
+              style={{
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
               {it.email.from}
             </Mono>
           </div>
@@ -200,7 +262,14 @@ function InboxEscape({ api }: { api: DrillApi }) {
               {it.email.subject}
             </Body>
           </div>
-          <div style={{ marginTop: 3, display: "flex", alignItems: "center", gap: 4 }}>
+          <div
+            style={{
+              marginTop: 3,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
             <button
               type="button"
               data-interactive="chip"
@@ -233,19 +302,61 @@ function InboxEscape({ api }: { api: DrillApi }) {
 type Url = { id: string; url: string; fake: boolean; tell: string };
 
 const URLS: Url[] = [
-  { id: "u1", url: "https://rosewood.gov.uk/council/minutes", fake: false, tell: "Council domain, ordinary path. Let it through." },
-  { id: "u2", url: "http://rosewood-post.delivery-verify.co/pay", fake: true, tell: "The real name sits in front of a domain that isn't theirs." },
-  { id: "u3", url: "https://rosewoodledger.co.uk/corrections", fake: false, tell: "Your own paper. The corrections page, no less." },
-  { id: "u4", url: "https://secure-rosewoodbank.account-check.ru", fake: true, tell: "Whatever comes before the last two labels is decoration." },
-  { id: "u5", url: "https://rosewoodhigh.sch.uk/term-dates", fake: false, tell: "School domain, boring content. That is the point." },
-  { id: "u6", url: "https://rosew00dbank.co.uk/login", fake: true, tell: "Two zeroes doing the work of two Os." },
-  { id: "u7", url: "https://nhs.uk/find-a-pharmacy", fake: false, tell: "Short, official, nothing bolted on the front." },
-  { id: "u8", url: "https://rosewood.gov.uk.grants-portal.link", fake: true, tell: "gov.uk is a subdomain here. The real host is grants-portal.link." },
+  {
+    id: "u1",
+    url: "https://rosewood.gov.uk/council/minutes",
+    fake: false,
+    tell: "Council domain, ordinary path. Let it through.",
+  },
+  {
+    id: "u2",
+    url: "http://rosewood-post.delivery-verify.co/pay",
+    fake: true,
+    tell: "The real name sits in front of a domain that isn't theirs.",
+  },
+  {
+    id: "u3",
+    url: "https://rosewoodledger.co.uk/corrections",
+    fake: false,
+    tell: "Your own paper. The corrections page, no less.",
+  },
+  {
+    id: "u4",
+    url: "https://secure-rosewoodbank.account-check.ru",
+    fake: true,
+    tell: "Whatever comes before the last two labels is decoration.",
+  },
+  {
+    id: "u5",
+    url: "https://rosewoodhigh.sch.uk/term-dates",
+    fake: false,
+    tell: "School domain, boring content. That is the point.",
+  },
+  {
+    id: "u6",
+    url: "https://rosew00dbank.co.uk/login",
+    fake: true,
+    tell: "Two zeroes doing the work of two Os.",
+  },
+  {
+    id: "u7",
+    url: "https://nhs.uk/find-a-pharmacy",
+    fake: false,
+    tell: "Short, official, nothing bolted on the front.",
+  },
+  {
+    id: "u8",
+    url: "https://rosewood.gov.uk.grants-portal.link",
+    fake: true,
+    tell: "gov.uk is a subdomain here. The real host is grants-portal.link.",
+  },
 ];
 
 function UrlSprint({ api }: { api: DrillApi }) {
   const lane = useRef<HTMLDivElement | null>(null);
-  const [items, setItems] = useState<{ id: string; x: number; row: number; url: Url }[]>([]);
+  const [items, setItems] = useState<
+    { id: string; x: number; row: number; url: Url }[]
+  >([]);
   const next = useRef(0);
   const wait = useRef(0);
   const resolved = useRef(0);
@@ -261,28 +372,36 @@ function UrlSprint({ api }: { api: DrillApi }) {
     [api],
   );
 
-  useInterval(() => {
-    // the belt speeds up as the round goes on, but only a little — this is stage one
-    const speed = 3 + Math.min(3, Math.floor(resolved.current / 3));
+  useInterval(
+    () => {
+      // the belt speeds up as the round goes on, but only a little — this is stage one
+      const speed = 3 + Math.min(3, Math.floor(resolved.current / 3));
 
-    const keep: typeof items = [];
-    for (const it of items) {
-      const x = it.x - speed;
-      if (x <= -CARD_W - 40) resolve(it.url, false);
-      else keep.push({ ...it, x });
-    }
+      const keep: typeof items = [];
+      for (const it of items) {
+        const x = it.x - speed;
+        if (x <= -CARD_W - 40) resolve(it.url, false);
+        else keep.push({ ...it, x });
+      }
 
-    if (wait.current <= 0 && next.current < URLS.length && keep.length < 3) {
-      const url = URLS[next.current++];
-      keep.push({ id: url.id, x: laneW(), row: rows.current++ % LANE_TOP.length, url });
-      wait.current = 18;
-    } else {
-      wait.current -= 1;
-    }
+      if (wait.current <= 0 && next.current < URLS.length && keep.length < 3) {
+        const url = URLS[next.current++];
+        keep.push({
+          id: url.id,
+          x: laneW(),
+          row: rows.current++ % LANE_TOP.length,
+          url,
+        });
+        wait.current = 18;
+      } else {
+        wait.current -= 1;
+      }
 
-    setItems(keep);
-    if (next.current >= URLS.length && !keep.length) api.finish();
-  }, api.running ? 90 : null);
+      setItems(keep);
+      if (next.current >= URLS.length && !keep.length) api.finish();
+    },
+    api.running ? 90 : null,
+  );
 
   const block = useCallback(
     (id: string) => {
@@ -295,8 +414,25 @@ function UrlSprint({ api }: { api: DrillApi }) {
   );
 
   return (
-    <div ref={lane} style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      <Zone side="left" width={92} sprite="globe" label="LOADS" tone={C.green} />
+    <div
+      ref={lane}
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        backgroundImage: `url(${postofficeBg})`,
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        imageRendering: "pixelated",
+      }}
+    >
+      <Zone
+        side="left"
+        width={92}
+        sprite="globe"
+        label="LOADS"
+        tone={C.green}
+      />
 
       {items.map((it) => (
         <div
@@ -312,13 +448,32 @@ function UrlSprint({ api }: { api: DrillApi }) {
           }}
         >
           {/* a browser chrome strip — the address bar is the whole evidence */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 4px", backgroundColor: C.ink2 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "2px 4px",
+              backgroundColor: C.ink2,
+            }}
+          >
             <PixelSprite name="globe" scale={0.9} />
-            <Mono size={13} color={C.paper} style={{ overflow: "hidden", whiteSpace: "nowrap" }}>
+            <Mono
+              size={13}
+              color={C.paper}
+              style={{ overflow: "hidden", whiteSpace: "nowrap" }}
+            >
               {it.url.url}
             </Mono>
           </div>
-          <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 5 }}>
+          <div
+            style={{
+              marginTop: 4,
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
             <button
               type="button"
               data-interactive="chip"
