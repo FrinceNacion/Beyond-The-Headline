@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { C, dither, speckle } from "../game/palette";
 import { Body, Display, Mono, PixelButton, PixelSprite, TipsCounter } from "../components/Pixel";
 import { HudButton } from "../components/Hud";
-import { StreetScene } from "../components/StreetScene";
+const customBgGif = new URL("../../assets/backgrounds/start.mp4", import.meta.url).href;
 
 /** 4-step camera pan from a wide town shot into the menu view. First load only. */
 const PAN_FRAMES = [
@@ -34,15 +34,36 @@ export function TitleScreen({
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
       {/* looping ambient scene, stepped camera on first load */}
+      {/* 1. Looping MP4 background replacing <StreetScene /> */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        src={customBgGif}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+          pointerEvents: "none",
+          imageRendering: "pixelated",
+        }}
+      />
+
+      {/* 2. Optional subtle overlay if you want to make text pop more */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          transformOrigin: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.2)",
+          zIndex: 1,
+          pointerEvents: "none",
         }}
-      >
-        <StreetScene />
-      </div>
+      />
 
       {/* top corner HUD */}
       <div

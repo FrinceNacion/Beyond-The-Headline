@@ -1,9 +1,17 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { C, speckle } from "../../game/palette";
 import { Body, Mono, PixelButton, PixelSprite } from "../../components/Pixel";
+import schoolbg from "../../../assets/backgrounds/school.png";
 import { StageShell } from "../arcade/StageShell";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import type { CaseDef } from "../../game/cases";
+
+const SCHOOL_BACKGROUND = {
+  backgroundImage: `url(${schoolbg})`,
+  backgroundSize: "contain",
+  backgroundPosition: "center",
+  imageRendering: "pixelated" as const,
+};
 
 /* Stage 7 — AI-Generated Content. Two drills, both a single mechanic: read
    one card, tap one button, see why you were right or wrong, next card. No
@@ -21,19 +29,21 @@ type Round2 = { id: string; claim: string; real: boolean; tell: string };
 const REAL_OR_AI: Round2[] = [
   {
     id: "r1",
-    claim: "Photo caption: three students holding a banner — one hand has six fingers.",
+    claim:
+      "Photo caption: three students holding a banner — one hand has six fingers.",
     real: false,
     tell: "AI image tools still get hands wrong more than anything else.",
   },
   {
     id: "r2",
-    claim: "Quote from the principal: \"We are committed to fostering excellence.\"",
+    claim:
+      'Quote from the principal: "We are committed to fostering excellence."',
     real: true,
     tell: "Bland, but that's just how principals actually talk.",
   },
   {
     id: "r3",
-    claim: "Chatbot answer: \"The French Revolution began in 1812.\"",
+    claim: 'Chatbot answer: "The French Revolution began in 1812."',
     real: false,
     tell: "Confident and wrong — that's a hallucinated date, not a typo.",
   },
@@ -45,13 +55,15 @@ const REAL_OR_AI: Round2[] = [
   },
   {
     id: "r5",
-    claim: "Sports recap article: the exact same sentence structure repeats four paragraphs in a row.",
+    claim:
+      "Sports recap article: the exact same sentence structure repeats four paragraphs in a row.",
     real: false,
     tell: "Real writers vary their rhythm without noticing — AI text often doesn't.",
   },
   {
     id: "r6",
-    claim: "A handwritten note pinned to the noticeboard, slightly crooked in the scan.",
+    claim:
+      "A handwritten note pinned to the noticeboard, slightly crooked in the scan.",
     real: true,
     tell: "Messy and human. Nothing here reads machine-made.",
   },
@@ -59,41 +71,71 @@ const REAL_OR_AI: Round2[] = [
 
 /* ------------------------------------------------------- drill 2: WHAT'S THE GIVEAWAY? */
 
-type Round3 = { id: string; claim: string; options: [string, string, string]; correct: 0 | 1 | 2; tell: string };
+type Round3 = {
+  id: string;
+  claim: string;
+  options: [string, string, string];
+  correct: 0 | 1 | 2;
+  tell: string;
+};
 
 const GIVEAWAY: Round3[] = [
   {
     id: "g1",
-    claim: "Chatbot says: \"Studies show 94% of teachers agree.\"",
-    options: ["No study is named or linked", "It's too short", "It uses a percentage"],
+    claim: 'Chatbot says: "Studies show 94% of teachers agree."',
+    options: [
+      "No study is named or linked",
+      "It's too short",
+      "It uses a percentage",
+    ],
     correct: 0,
     tell: "A specific-sounding number with nothing behind it is a classic AI tell — a real claim points somewhere.",
   },
   {
     id: "g2",
-    claim: "An article about the school play, but every paragraph is exactly the same length.",
-    options: ["The paragraphs are suspiciously even", "It mentions the school by name", "It has a headline"],
+    claim:
+      "An article about the school play, but every paragraph is exactly the same length.",
+    options: [
+      "The paragraphs are suspiciously even",
+      "It mentions the school by name",
+      "It has a headline",
+    ],
     correct: 0,
     tell: "Real writing has rhythm — AI text often falls into a too-tidy, uniform shape.",
   },
   {
     id: "g3",
-    claim: "A photo of the trophy case — the engraving on one trophy is garbled, not real words.",
-    options: ["The photo is in colour", "The engraved text is garbled nonsense", "The case is glass"],
+    claim:
+      "A photo of the trophy case — the engraving on one trophy is garbled, not real words.",
+    options: [
+      "The photo is in colour",
+      "The engraved text is garbled nonsense",
+      "The case is glass",
+    ],
     correct: 1,
     tell: "AI image generators still struggle to render real, readable text.",
   },
   {
     id: "g4",
-    claim: "An email \"from the school\" signed only \"The Administration,\" no name attached.",
-    options: ["It uses formal language", "It was sent in the morning", "No specific person is named or reachable"],
+    claim:
+      'An email "from the school" signed only "The Administration," no name attached.',
+    options: [
+      "It uses formal language",
+      "It was sent in the morning",
+      "No specific person is named or reachable",
+    ],
     correct: 2,
     tell: "A real notice usually has someone accountable attached to it, not just a title.",
   },
   {
     id: "g5",
-    claim: "A chatbot's summary of a book describes a chapter that doesn't exist in the book.",
-    options: ["The summary is long", "It uses big words", "It invents details that aren't in the source"],
+    claim:
+      "A chatbot's summary of a book describes a chapter that doesn't exist in the book.",
+    options: [
+      "The summary is long",
+      "It uses big words",
+      "It invents details that aren't in the source",
+    ],
     correct: 2,
     tell: "Making up a plausible-sounding chapter is a classic hallucination, not an error of tone.",
   },
@@ -120,7 +162,16 @@ function TapCard({
   onPick: boolean; // true while a pick is being resolved — buttons disabled
 }) {
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 14 }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 14,
+      }}
+    >
       <div
         style={{
           width: 440,
@@ -136,14 +187,36 @@ function TapCard({
             {n}/{total} · {eyebrow}
           </Mono>
         </div>
-        <div style={{ marginTop: 8, padding: "8px 9px", backgroundColor: C.paper3, boxShadow: `0 0 0 2px ${C.ink}` }}>
+        <div
+          style={{
+            marginTop: 8,
+            padding: "8px 9px",
+            backgroundColor: C.paper3,
+            boxShadow: `0 0 0 2px ${C.ink}`,
+          }}
+        >
           <Body size={15} color={C.ink}>
             {claim}
           </Body>
         </div>
-        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div
+          style={{
+            marginTop: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}
+        >
           {options.map((o, i) => (
-            <PixelButton key={i} full variant="paper" size={9} disabled={onPick} onClick={o.onClick} label={`Button — ${o.label}`}>
+            <PixelButton
+              key={i}
+              full
+              variant="paper"
+              size={9}
+              disabled={onPick}
+              onClick={o.onClick}
+              label={`Button — ${o.label}`}
+            >
               {o.label.toUpperCase()}
             </PixelButton>
           ))}
@@ -221,7 +294,10 @@ function WhatsTheGiveaway({ api }: { api: DrillApi }) {
       eyebrow="THIS IS AI-MADE. WHAT'S THE GIVEAWAY?"
       claim={round.claim}
       onPick={resolving}
-      options={round.options.map((label, i) => ({ label, onClick: () => pick(i as 0 | 1 | 2) }))}
+      options={round.options.map((label, i) => ({
+        label,
+        onClick: () => pick(i as 0 | 1 | 2),
+      }))}
     />
   );
 }
@@ -276,15 +352,24 @@ export function SchoolStage({
 }) {
   const drills = useMemo(() => SCHOOL_DRILLS, []);
   return (
-    <StageShell
-      cs={cs}
-      tips={tips}
-      rank={rank}
-      index={index}
-      drills={drills}
-      clockFrame={clockFrame}
-      onComplete={onComplete}
-      onExit={onExit}
-    />
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        ...SCHOOL_BACKGROUND,
+      }}
+    >
+      <StageShell
+        cs={cs}
+        tips={tips}
+        rank={rank}
+        index={index}
+        drills={drills}
+        clockFrame={clockFrame}
+        onComplete={onComplete}
+        onExit={onExit}
+      />
+    </div>
   );
 }

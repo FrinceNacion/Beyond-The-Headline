@@ -1,10 +1,32 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { C, speckle } from "../../game/palette";
-import { Body, Display, Mono, PixelButton, PixelMeter, PixelSprite } from "../../components/Pixel";
+import {
+  Body,
+  Display,
+  Mono,
+  PixelButton,
+  PixelMeter,
+  PixelSprite,
+} from "../../components/Pixel";
+import precinctbg from "../../../assets/backgrounds/precinct.png";
 import { TopHud } from "../../components/Hud";
 import { StarRow } from "../../components/Stars";
 import { Overlay, useInterval } from "../arcade/StageShell";
 import type { StageProps, StageResult } from "../arcade/stage";
+import { CaseDef } from "../../game/cases";
+
+const PRECINCT_BACKGROUND = {
+  backgroundImage: `url(${precinctbg})`,
+  backgroundSize: "contain",
+  backgroundPosition: "center",
+  imageRendering: "pixelated" as const,
+};
 
 /* CASE 06 — "Crime Wave, Allegedly". Not a drill stage: a two-stage arcade
    run built around the same story beat (two true numbers, arranged to lie).
@@ -27,38 +49,161 @@ function clamp(v: number, lo: number, hi: number) {
 /* ------------------------------------------------------------- feed data */
 
 type FeedKind = "news" | "social" | "ad";
-type FeedFact = { id: string; kind: FeedKind; text: string; misinfo: boolean; tell: string };
+type FeedFact = {
+  id: string;
+  kind: FeedKind;
+  text: string;
+  misinfo: boolean;
+  tell: string;
+};
 
 /* Kept deliberately basic and patterned: true items read calm and plain,
    with a number or a name attached. Fake items shout, use no source, and
    push you to act fast. The shape of the sentence is the tell, not just
    the words in it — so the difference stays easy to spot at speed. */
 const FEED_FACTS: FeedFact[] = [
-  { id: "f1", kind: "news", text: "Thefts went up 22% this quarter.", misinfo: false, tell: "TRUE. This number is from the real police report." },
-  { id: "f2", kind: "social", text: "NO ONE IS SAFE HERE!!", misinfo: true, tell: "FAKE. Violent crime actually went down, not up." },
-  { id: "f3", kind: "news", text: "A new report website opened in January.", misinfo: false, tell: "TRUE. This is why more reports came in." },
-  { id: "f4", kind: "social", text: "THIS IS THE #1 MOST DANGEROUS CITY!!", misinfo: true, tell: "FAKE. The state ranks it 44th out of 61, not #1." },
-  { id: "f5", kind: "news", text: "Violent crime went down 6% this quarter.", misinfo: false, tell: "TRUE. The police captain said this out loud." },
-  { id: "f6", kind: "ad", text: "DOWNLOAD THIS APP TO SEE DANGER NEAR YOU!!", misinfo: true, tell: "FAKE. This is an ad, not a real news source." },
-  { id: "f7", kind: "social", text: "Police say it's too soon to know why reports went up.", misinfo: false, tell: "TRUE. An officer said this on the record." },
-  { id: "f8", kind: "news", text: "POLICE ARE HIDING THE TRUTH!!", misinfo: true, tell: "FAKE. No proof is given, just a scary claim." },
-  { id: "f9", kind: "social", text: "The report website opened in January.", misinfo: false, tell: "TRUE. Same fact, said a second way." },
-  { id: "f10", kind: "ad", text: "SHARE NOW! A CRIME WAVE IS COMING!!", misinfo: true, tell: "FAKE. It just wants you to share it fast." },
-  { id: "f11", kind: "news", text: "The city shared its crime numbers today.", misinfo: false, tell: "TRUE. Just a normal report, nothing to smash." },
-  { id: "f12", kind: "social", text: "POLICE ARE LYING! SHARE THIS!!", misinfo: true, tell: "FAKE. No proof, just anger." },
-  { id: "f13", kind: "ad", text: "SEE EVERY CRIME ON YOUR STREET! CLICK NOW!!", misinfo: true, tell: "FAKE. It just wants clicks, not to inform you." },
-  { id: "f14", kind: "news", text: "The state ranks this city 44th out of 61 for crime.", misinfo: false, tell: "TRUE. This is the number the loud posts leave out." },
+  {
+    id: "f1",
+    kind: "news",
+    text: "Thefts went up 22% this quarter.",
+    misinfo: false,
+    tell: "TRUE. This number is from the real police report.",
+  },
+  {
+    id: "f2",
+    kind: "social",
+    text: "NO ONE IS SAFE HERE!!",
+    misinfo: true,
+    tell: "FAKE. Violent crime actually went down, not up.",
+  },
+  {
+    id: "f3",
+    kind: "news",
+    text: "A new report website opened in January.",
+    misinfo: false,
+    tell: "TRUE. This is why more reports came in.",
+  },
+  {
+    id: "f4",
+    kind: "social",
+    text: "THIS IS THE #1 MOST DANGEROUS CITY!!",
+    misinfo: true,
+    tell: "FAKE. The state ranks it 44th out of 61, not #1.",
+  },
+  {
+    id: "f5",
+    kind: "news",
+    text: "Violent crime went down 6% this quarter.",
+    misinfo: false,
+    tell: "TRUE. The police captain said this out loud.",
+  },
+  {
+    id: "f6",
+    kind: "ad",
+    text: "DOWNLOAD THIS APP TO SEE DANGER NEAR YOU!!",
+    misinfo: true,
+    tell: "FAKE. This is an ad, not a real news source.",
+  },
+  {
+    id: "f7",
+    kind: "social",
+    text: "Police say it's too soon to know why reports went up.",
+    misinfo: false,
+    tell: "TRUE. An officer said this on the record.",
+  },
+  {
+    id: "f8",
+    kind: "news",
+    text: "POLICE ARE HIDING THE TRUTH!!",
+    misinfo: true,
+    tell: "FAKE. No proof is given, just a scary claim.",
+  },
+  {
+    id: "f9",
+    kind: "social",
+    text: "The report website opened in January.",
+    misinfo: false,
+    tell: "TRUE. Same fact, said a second way.",
+  },
+  {
+    id: "f10",
+    kind: "ad",
+    text: "SHARE NOW! A CRIME WAVE IS COMING!!",
+    misinfo: true,
+    tell: "FAKE. It just wants you to share it fast.",
+  },
+  {
+    id: "f11",
+    kind: "news",
+    text: "The city shared its crime numbers today.",
+    misinfo: false,
+    tell: "TRUE. Just a normal report, nothing to smash.",
+  },
+  {
+    id: "f12",
+    kind: "social",
+    text: "POLICE ARE LYING! SHARE THIS!!",
+    misinfo: true,
+    tell: "FAKE. No proof, just anger.",
+  },
+  {
+    id: "f13",
+    kind: "ad",
+    text: "SEE EVERY CRIME ON YOUR STREET! CLICK NOW!!",
+    misinfo: true,
+    tell: "FAKE. It just wants clicks, not to inform you.",
+  },
+  {
+    id: "f14",
+    kind: "news",
+    text: "The state ranks this city 44th out of 61 for crime.",
+    misinfo: false,
+    tell: "TRUE. This is the number the loud posts leave out.",
+  },
 ];
 
-const FEED_TONE: Record<FeedKind, { bg: string; border: string; text: string; label: string; labelColor: string }> = {
-  news: { bg: C.paper2, border: C.ink, text: C.ink, label: "NEWS", labelColor: C.red },
-  social: { bg: C.ink2, border: C.ink4, text: C.paper2, label: "SOCIAL", labelColor: C.brassLight },
-  ad: { bg: C.brass, border: C.brassDark, text: C.ink, label: "SPONSORED", labelColor: C.redDark },
+const FEED_TONE: Record<
+  FeedKind,
+  {
+    bg: string;
+    border: string;
+    text: string;
+    label: string;
+    labelColor: string;
+  }
+> = {
+  news: {
+    bg: C.paper2,
+    border: C.ink,
+    text: C.ink,
+    label: "NEWS",
+    labelColor: C.red,
+  },
+  social: {
+    bg: C.ink2,
+    border: C.ink4,
+    text: C.paper2,
+    label: "SOCIAL",
+    labelColor: C.brassLight,
+  },
+  ad: {
+    bg: C.brass,
+    border: C.brassDark,
+    text: C.ink,
+    label: "SPONSORED",
+    labelColor: C.redDark,
+  },
 };
 
 const MISSILE_LINES = [
-  "DANGER!!", "SHARE NOW!!", "CLICK HERE!!", "NOT SAFE!!",
-  "DOWNLOAD NOW!!", "SO SCARY!!", "FAKE NEWS!!", "WARNING!!",
+  "DANGER!!",
+  "SHARE NOW!!",
+  "CLICK HERE!!",
+  "NOT SAFE!!",
+  "DOWNLOAD NOW!!",
+  "SO SCARY!!",
+  "FAKE NEWS!!",
+  "WARNING!!",
 ];
 
 /* -------------------------------------------------------------- balance */
@@ -82,16 +227,53 @@ type Phase = "brief1" | "feed" | "shop" | "defense" | "outcome";
 
 type Spawn = FeedFact & { uid: number; x: number; y: number; ttl: number };
 type Bullet = { id: number; x: number; y: number };
-type Missile = { id: number; x: number; y: number; speed: number; label: string };
+type Missile = {
+  id: number;
+  x: number;
+  y: number;
+  speed: number;
+  label: string;
+};
 type ShopState = { double: boolean; shield: boolean; speed: boolean };
 
-const SHOP_ITEMS: { key: keyof ShopState; name: string; cost: number; icon: string; desc: string }[] = [
-  { key: "double", name: "DOUBLE SHOT", cost: 45, icon: "keycap", desc: "Firewall ship fires two bolts at once." },
-  { key: "shield", name: "LARGER SHIELD", cost: 30, icon: "shield", desc: "+25 tower shield, right now." },
-  { key: "speed", name: "SPEED BOOST", cost: 25, icon: "stopwatch", desc: "Ship tracks your drag much faster." },
+const SHOP_ITEMS: {
+  key: keyof ShopState;
+  name: string;
+  cost: number;
+  icon: string;
+  desc: string;
+}[] = [
+  {
+    key: "double",
+    name: "DOUBLE SHOT",
+    cost: 45,
+    icon: "keycap",
+    desc: "Firewall ship fires two bolts at once.",
+  },
+  {
+    key: "shield",
+    name: "LARGER SHIELD",
+    cost: 30,
+    icon: "shield",
+    desc: "+25 tower shield, right now.",
+  },
+  {
+    key: "speed",
+    name: "SPEED BOOST",
+    cost: 25,
+    icon: "stopwatch",
+    desc: "Ship tracks your drag much faster.",
+  },
 ];
 
-export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: StageProps) {
+export function PoliceStage({
+  cs,
+  tips,
+  rank,
+  clockFrame,
+  onComplete,
+  onExit,
+}: StageProps) {
   const [attempt, setAttempt] = useState(0);
   const [phase, setPhase] = useState<Phase>("brief1");
 
@@ -103,7 +285,10 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
 
   const flashCall = useCallback((good: boolean, why?: string) => {
     setFlash(good ? "good" : "bad");
-    window.setTimeout(() => setFlash((f) => (f === (good ? "good" : "bad") ? null : f)), 220);
+    window.setTimeout(
+      () => setFlash((f) => (f === (good ? "good" : "bad") ? null : f)),
+      220,
+    );
     if (why) {
       setNote(why);
       window.setTimeout(() => setNote((n) => (n === why ? null : n)), 1900);
@@ -122,7 +307,8 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
 
   const spawnOne = useCallback(() => {
     let f = FEED_FACTS[Math.floor(Math.random() * FEED_FACTS.length)];
-    if (f.id === lastFactId.current) f = FEED_FACTS[Math.floor(Math.random() * FEED_FACTS.length)];
+    if (f.id === lastFactId.current)
+      f = FEED_FACTS[Math.floor(Math.random() * FEED_FACTS.length)];
     lastFactId.current = f.id;
     const s: Spawn = {
       ...f,
@@ -190,7 +376,11 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
   );
 
   /* --------------------------------------------------------------- shop */
-  const [shop, setShop] = useState<ShopState>({ double: false, shield: false, speed: false });
+  const [shop, setShop] = useState<ShopState>({
+    double: false,
+    shield: false,
+    speed: false,
+  });
   const [startShield, setStartShield] = useState(100);
   const shieldMax = 100 + (shop.shield ? 25 : 0);
 
@@ -210,8 +400,8 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
     [shop, coins],
   );
 
- /* ------------------------------------------------------------ defense */
- /* ------------------------------------------------------------ defense */
+  /* ------------------------------------------------------------ defense */
+  /* ------------------------------------------------------------ defense */
   const [shield, setShield] = useState(100);
   const [shipX, setShipX] = useState(50);
   const [bullets, setBullets] = useState<Bullet[]>([]);
@@ -230,7 +420,9 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
 
   useEffect(() => {
     if (phase !== "defense") return;
-    setShield(shop.shield ? Math.min(shieldMax, startShield + 25) : startShield);
+    setShield(
+      shop.shield ? Math.min(shieldMax, startShield + 25) : startShield,
+    );
     setShipX(50);
     shipTarget.current = 50;
     setBullets([]);
@@ -246,7 +438,11 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
   const toggleTargetMode = useCallback(() => {
     setTargetMode((prev) => {
       const next = prev === "infected" ? "safe" : "infected";
-      setWarningBanner(next === "safe" ? "PRIORITY: SAFE DATA (CAUTION!)" : "PRIORITY: INFECTED THREATS");
+      setWarningBanner(
+        next === "safe"
+          ? "PRIORITY: SAFE DATA (CAUTION!)"
+          : "PRIORITY: INFECTED THREATS",
+      );
       window.setTimeout(() => setWarningBanner(null), 1500);
       return next;
     });
@@ -270,22 +466,35 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
         // Start bullets right above the ship container (y: 84) so they enter smoothly on screen
         liveBullets = [
           ...liveBullets,
-          ...offsets.map((o) => ({ id: bulletUid.current++, x: clamp(shipX + o, 3, 97), y: 84 })),
+          ...offsets.map((o) => ({
+            id: bulletUid.current++,
+            x: clamp(shipX + o, 3, 97),
+            y: 84,
+          })),
         ];
       }
       // Keep bullets moving upward, filtering out anything that goes off-screen at the top (y <= 0)
-      liveBullets = liveBullets.map((b) => ({ ...b, y: b.y - 7 })).filter((b) => b.y > 0);
+      liveBullets = liveBullets
+        .map((b) => ({ ...b, y: b.y - 7 }))
+        .filter((b) => b.y > 0);
 
       spawnCd.current -= 1;
       let liveMissiles = missiles;
       if (spawnCd.current <= 0) {
         spawnCd.current = Math.max(8, 15 - Math.floor(destroyed / 3));
-        
+
         // Define unique enemy types with distinct behaviors[cite: 1]
-        const enemyTypes: ("swarm" | "tank" | "stealth" | "safe_data")[] = ["swarm", "tank", "stealth", "safe_data"];
-        const chosenType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-        
-        let labelText = MISSILE_LINES[Math.floor(Math.random() * MISSILE_LINES.length)];
+        const enemyTypes: ("swarm" | "tank" | "stealth" | "safe_data")[] = [
+          "swarm",
+          "tank",
+          "stealth",
+          "safe_data",
+        ];
+        const chosenType =
+          enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+
+        let labelText =
+          MISSILE_LINES[Math.floor(Math.random() * MISSILE_LINES.length)];
         let customSpeed = 1.1 + Math.random() * 0.6 + destroyed * 0.025;
         let isSafe = false;
 
@@ -336,10 +545,12 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
       let penaltyTriggered = false;
 
       for (const m of liveMissiles) {
-        const hitIdx = survivedBullets.findIndex((b) => Math.abs(b.x - m.x) < 7 && Math.abs(b.y - m.y) < 8);
+        const hitIdx = survivedBullets.findIndex(
+          (b) => Math.abs(b.x - m.x) < 7 && Math.abs(b.y - m.y) < 8,
+        );
         if (hitIdx >= 0) {
           survivedBullets.splice(hitIdx, 1);
-          
+
           // @ts-ignore checking custom property
           if (m.isSafeData) {
             // Penalty for destroying safe/true data instead of infected targets[cite: 1]
@@ -390,11 +601,22 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
     shipTarget.current = clamp(pct, 4, 96);
   }, []);
   /* ------------------------------------------------------------- outcome */
-  const cleared = phase === "outcome" && shield > 0 && destroyed >= DESTROY_TARGET;
-  const failedInFeed = phase === "outcome" && panic >= PANIC_MAX && feedTimeLeft > 0 && destroyed < DESTROY_TARGET && shield > 0 && !cleared;
+  const cleared =
+    phase === "outcome" && shield > 0 && destroyed >= DESTROY_TARGET;
+  const failedInFeed =
+    phase === "outcome" &&
+    panic >= PANIC_MAX &&
+    feedTimeLeft > 0 &&
+    destroyed < DESTROY_TARGET &&
+    shield > 0 &&
+    !cleared;
 
   const stars = useMemo(
-    () => [cleared, cleared && shield >= shieldMax * 0.5, cleared && feedWrong === 0],
+    () => [
+      cleared,
+      cleared && shield >= shieldMax * 0.5,
+      cleared && feedWrong === 0,
+    ],
     [cleared, shield, shieldMax, feedWrong],
   );
   const clearBonus = cleared ? 40 + destroyed : 0;
@@ -447,13 +669,30 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
   const panicPct = panic / PANIC_MAX;
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }} key={attempt}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        ...PRECINCT_BACKGROUND,
+      }}
+      key={attempt}
+    >
       <TopHud
         tips={tips}
         rank={rank}
         onMap={() => leave(false)}
         left={
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              marginLeft: 4,
+            }}
+          >
             <PixelSprite name={cs.sprite} scale={0.9} />
             <Display size={8} color={C.brassLight}>
               {cs.tag}
@@ -498,7 +737,13 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
                 <Mono size={12} color={C.red}>
                   PANIC
                 </Mono>
-                <PixelMeter value={panicPct} width={90} height={10} cells={12} fill={C.red} />
+                <PixelMeter
+                  value={panicPct}
+                  width={90}
+                  height={10}
+                  cells={12}
+                  fill={C.red}
+                />
               </div>
             ) : null}
             {phase === "defense" ? (
@@ -515,7 +760,13 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
                 <Mono size={12} color={C.greenLight}>
                   TOWER
                 </Mono>
-                <PixelMeter value={towerPct} width={90} height={10} cells={12} fill={C.green} />
+                <PixelMeter
+                  value={towerPct}
+                  width={90}
+                  height={10}
+                  cells={12}
+                  fill={C.green}
+                />
               </div>
             ) : null}
             {phase === "feed" ? (
@@ -529,7 +780,10 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
                   boxShadow: `0 0 0 2px ${feedTimeLeft <= 8 ? C.red : C.ink3}`,
                 }}
               >
-                <PixelSprite name={clockFrame % 2 ? "clock2" : "clock1"} scale={1.2} />
+                <PixelSprite
+                  name={clockFrame % 2 ? "clock2" : "clock1"}
+                  scale={1.2}
+                />
                 <Mono size={16} color={feedTimeLeft <= 8 ? C.red : C.paper2}>
                   0:{String(feedTimeLeft).padStart(2, "0")}
                 </Mono>
@@ -555,7 +809,15 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
         }
       />
 
-      <div style={{ flex: 1, position: "relative", overflow: "hidden", backgroundColor: C.ink }}>
+      <div
+        style={{
+          flex: 1,
+          position: "relative",
+          overflow: "hidden",
+          backgroundColor: "transparent",
+          ...PRECINCT_BACKGROUND,
+        }}
+      >
         {/* screen flash + toast, shared by both stages */}
         {flash ? (
           <div
@@ -596,7 +858,14 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
         ) : null}
 
         {phase === "feed" ? (
-          <div aria-hidden={false} style={{ position: "absolute", inset: 0, ...speckle(C.ink, C.ink2, 4) }}>
+          <div
+            aria-hidden={false}
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "transparent",
+            }}
+          >
             {feedItems.map((it) => {
               const tone = FEED_TONE[it.kind];
               const life = it.ttl / FEED_ITEM_TTL_TICKS;
@@ -630,8 +899,20 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
                       {it.text}
                     </Body>
                   </div>
-                  <div style={{ marginTop: 4, height: 4, backgroundColor: "rgba(0,0,0,0.25)" }}>
-                    <div style={{ width: `${life * 100}%`, height: "100%", backgroundColor: tone.labelColor }} />
+                  <div
+                    style={{
+                      marginTop: 4,
+                      height: 4,
+                      backgroundColor: "rgba(0,0,0,0.25)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${life * 100}%`,
+                        height: "100%",
+                        backgroundColor: tone.labelColor,
+                      }}
+                    />
                   </div>
                 </button>
               );
@@ -644,7 +925,9 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
             coins={coins}
             shop={shop}
             onBuy={buy}
-            startShield={shop.shield ? Math.min(shieldMax, startShield + 25) : startShield}
+            startShield={
+              shop.shield ? Math.min(shieldMax, startShield + 25) : startShield
+            }
             shieldMax={shieldMax}
             onDeploy={() => setPhase("defense")}
           />
@@ -654,7 +937,12 @@ export function PoliceStage({ cs, tips, rank, clockFrame, onComplete, onExit }: 
           <div
             onPointerMove={dragShip}
             onPointerDown={dragShip}
-            style={{ position: "absolute", inset: 0, ...speckle(C.ink, C.ink2, 4), touchAction: "none" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "transparent",
+              touchAction: "none",
+            }}
           >
             {/* tower row */}
             <div
@@ -786,25 +1074,43 @@ function Brief1Card({ onStart }: { onStart: () => void }) {
           </div>
         </div>
 
-        <div style={{ marginTop: 8, padding: "6px 8px", backgroundColor: C.paper3, boxShadow: `0 0 0 2px ${C.ink}` }}>
+        <div
+          style={{
+            marginTop: 8,
+            padding: "6px 8px",
+            backgroundColor: C.paper3,
+            boxShadow: `0 0 0 2px ${C.ink}`,
+          }}
+        >
           <Display size={7} color={C.red}>
             OBJECTIVE
           </Display>
           <div style={{ marginTop: 3 }}>
             <Body size={14} color={C.ink}>
-              Smash the misinformation before it lands. Leave the true reports alone.
+              Smash the misinformation before it lands. Leave the true reports
+              alone.
             </Body>
           </div>
         </div>
 
-        <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
           {[
             "Tap a card the moment you're sure it's a false or misleading claim.",
             "A true report costs you nothing — leave it, it fades on its own.",
             "Tapping a true report, or letting misinformation expire, raises the Panic Meter.",
             "How calm you keep the feed decides how much shield your tower starts with.",
           ].map((h) => (
-            <div key={h} style={{ display: "flex", alignItems: "flex-start", gap: 5 }}>
+            <div
+              key={h}
+              style={{ display: "flex", alignItems: "flex-start", gap: 5 }}
+            >
               <div
                 style={{
                   flex: "0 0 auto",
@@ -822,12 +1128,26 @@ function Brief1Card({ onStart }: { onStart: () => void }) {
           ))}
         </div>
 
-        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          style={{
+            marginTop: 10,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <Mono size={13} color={C.paper4}>
             {FEED_SECONDS}s ON THE CLOCK
           </Mono>
           <div style={{ flex: 1 }} />
-          <PixelButton variant="red" size={10} icon="magnifier" iconScale={1.1} onClick={onStart} label="Button — Open the feed">
+          <PixelButton
+            variant="red"
+            size={10}
+            icon="magnifier"
+            iconScale={1.1}
+            onClick={onStart}
+            label="Button — Open the feed"
+          >
             OPEN THE FEED
           </PixelButton>
         </div>
@@ -886,13 +1206,31 @@ function ShopCard({
           </div>
         </div>
 
-        <div style={{ marginTop: 4, padding: "4px 6px", backgroundColor: C.paper3, boxShadow: `0 0 0 2px ${C.ink}` }}>
+        <div
+          style={{
+            marginTop: 4,
+            padding: "4px 6px",
+            backgroundColor: C.paper3,
+            boxShadow: `0 0 0 2px ${C.ink}`,
+          }}
+        >
           <Body size={11} color={C.ink}>
-            Deploying with <b>{startShield}/{shieldMax}</b> tower shield — spend Data Coins here, or save them for the payout.
+            Deploying with{" "}
+            <b>
+              {startShield}/{shieldMax}
+            </b>{" "}
+            tower shield — spend Data Coins here, or save them for the payout.
           </Body>
         </div>
 
-        <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+        <div
+          style={{
+            marginTop: 4,
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+          }}
+        >
           {SHOP_ITEMS.map((it) => {
             const owned = shop[it.key];
             const afford = coins >= it.cost;
@@ -933,17 +1271,33 @@ function ShopCard({
           })}
         </div>
 
-        <div style={{ marginTop: 4, padding: "5px 7px", backgroundColor: C.ink2, boxShadow: `0 0 0 2px ${C.ink3}`, display: "flex", flexDirection: "column", gap: 3 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div
+          style={{
+            marginTop: 4,
+            padding: "5px 7px",
+            backgroundColor: C.ink2,
+            boxShadow: `0 0 0 2px ${C.ink3}`,
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Display size={6} color={C.brassLight}>
               STAGE 2 — THE LOCAL DEFENSE
             </Display>
-            <PixelButton 
-              variant="green" 
-              size={8} 
-              icon="shield" 
-              iconScale={0.9} 
-              onClick={onDeploy} 
+            <PixelButton
+              variant="green"
+              size={8}
+              icon="shield"
+              iconScale={0.9}
+              onClick={onDeploy}
               label="Button — Deploy to Tower"
             >
               DEPLOY
@@ -951,11 +1305,11 @@ function ShopCard({
           </div>
           <div>
             <Body size={10} color={C.paper2}>
-              Drag anywhere to steer the firewall ship — it autofires. Shoot clickbait invaders before they reach the tower.
+              Drag anywhere to steer the firewall ship — it autofires. Shoot
+              clickbait invaders before they reach the tower.
             </Body>
           </div>
         </div>
-
       </div>
     </Overlay>
   );
@@ -1004,7 +1358,14 @@ function PoliceOutcome({
           textAlign: "center",
         }}
       >
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 6,
+          }}
+        >
           <PixelSprite name={cleared ? "check" : "cross"} scale={2} />
           <Display size={14} color={cleared ? C.green : C.red}>
             {cleared ? "STAGE CLEAR" : "STAGE FAILED"}
@@ -1015,13 +1376,34 @@ function PoliceOutcome({
           {cs.tag} · {cs.building.toUpperCase()}
         </Mono>
 
-        <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            margin: "10px 0",
+          }}
+        >
           <StarRow earned={stars} scale={2.4} animate={cleared} />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 10 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+            marginBottom: 10,
+          }}
+        >
           {POLICE_STARS.map((label, i) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+            <div
+              key={label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 5,
+              }}
+            >
               <PixelSprite name={stars[i] ? "starOn" : "starOff"} scale={1} />
               <Mono size={13} color={stars[i] ? C.ink : C.paper4}>
                 {label.toUpperCase()}
@@ -1054,18 +1436,45 @@ function PoliceOutcome({
           </Mono>
         </div>
 
-        <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 5,
+          }}
+        >
           <PixelSprite name="coin" scale={1.4} />
           <Display size={11} color={C.ink}>
             {payout} TIPS EARNED
           </Display>
         </div>
 
-        <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center" }}>
-          <PixelButton variant="paper" size={9} onClick={onRetry} label="Button — Run the stage again">
+        <div
+          style={{
+            marginTop: 12,
+            display: "flex",
+            gap: 8,
+            justifyContent: "center",
+          }}
+        >
+          <PixelButton
+            variant="paper"
+            size={9}
+            onClick={onRetry}
+            label="Button — Run the stage again"
+          >
             RUN IT AGAIN
           </PixelButton>
-          <PixelButton variant="red" size={9} icon="pin" iconScale={1.1} onClick={onLeave} label="Button — Back to the map">
+          <PixelButton
+            variant="red"
+            size={9}
+            icon="pin"
+            iconScale={1.1}
+            onClick={onLeave}
+            label="Button — Back to the map"
+          >
             {cleared ? "NEXT STAGE ▸" : "BACK TO MAP"}
           </PixelButton>
         </div>

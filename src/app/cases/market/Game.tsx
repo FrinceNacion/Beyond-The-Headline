@@ -1,6 +1,13 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { C, speckle } from "../../game/palette";
-import { Body, Display, Mono, PixelMeter, PixelSprite } from "../../components/Pixel";
+import {
+  Body,
+  Display,
+  Mono,
+  PixelMeter,
+  PixelSprite,
+} from "../../components/Pixel";
+import marketbg from "../../../assets/backgrounds/market.png";
 import { StageShell, useInterval } from "../arcade/StageShell";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import type { CaseDef } from "../../game/cases";
@@ -10,7 +17,14 @@ import type { CaseDef } from "../../game/cases";
 
 /* ------------------------------------------------------------------ call drop */
 
-type Call = { id: string; who: string; number: string; line: string; scam: boolean; tell: string };
+type Call = {
+  id: string;
+  who: string;
+  number: string;
+  line: string;
+  scam: boolean;
+  tell: string;
+};
 
 /* Ordered so the tells get quieter: the first scams announce themselves, the
    last one is a single wrong digit on a number you already know. */
@@ -19,7 +33,7 @@ const CALLS: Call[] = [
     id: "c1",
     who: "UNKNOWN",
     number: "+44 7700 900118",
-    line: "\"This is your bank's fraud team. Read me the code we just sent.\"",
+    line: '"This is your bank\'s fraud team. Read me the code we just sent."',
     scam: true,
     tell: "No fraud team ever asks for the code. The code is the thing they are after.",
   },
@@ -27,7 +41,7 @@ const CALLS: Call[] = [
     id: "c2",
     who: "ROSEWOOD LEDGER — DESK",
     number: "01632 960 411",
-    line: "\"Copy's late. Where is it?\"",
+    line: '"Copy\'s late. Where is it?"',
     scam: false,
     tell: "Your own newsroom, from the number in your contacts. Let it connect.",
   },
@@ -35,7 +49,7 @@ const CALLS: Call[] = [
     id: "c3",
     who: "UNKNOWN",
     number: "+1 202 555 0143",
-    line: "\"Your national insurance number has been suspended.\"",
+    line: '"Your national insurance number has been suspended."',
     scam: true,
     tell: "Numbers do not get suspended. Threat plus urgency plus a foreign line — drop it.",
   },
@@ -43,7 +57,7 @@ const CALLS: Call[] = [
     id: "c4",
     who: "LENDING LIBRARY",
     number: "01632 960 227",
-    line: "\"Your reservation is in until Friday.\"",
+    line: '"Your reservation is in until Friday."',
     scam: false,
     tell: "Ordinary, specific, asks nothing of you. Perfectly real.",
   },
@@ -51,7 +65,7 @@ const CALLS: Call[] = [
     id: "c5",
     who: "ROSEWOOD POST — DELIVERY",
     number: "+44 7700 900902",
-    line: "\"Small redelivery fee. I can take the card now.\"",
+    line: '"Small redelivery fee. I can take the card now."',
     scam: true,
     tell: "You met this one at the post office. Nobody takes a card fee over the phone.",
   },
@@ -59,7 +73,7 @@ const CALLS: Call[] = [
     id: "c6",
     who: "A. BELLO",
     number: "01632 960 188",
-    line: "\"Counter's quiet, come down if you still want that quote.\"",
+    line: '"Counter\'s quiet, come down if you still want that quote."',
     scam: false,
     tell: "A named contact returning your call. Nothing asked, nothing offered.",
   },
@@ -67,7 +81,7 @@ const CALLS: Call[] = [
     id: "c7",
     who: "MICROSOFT SUPPORT",
     number: "WITHHELD",
-    line: "\"We have detected a virus. Install our remote tool.\"",
+    line: '"We have detected a virus. Install our remote tool."',
     scam: true,
     tell: "Withheld number, a company that never rings first, and remote access at the end.",
   },
@@ -75,7 +89,7 @@ const CALLS: Call[] = [
     id: "c8",
     who: "ROSEWOOD COUNCIL",
     number: "01632 960 700",
-    line: "\"Minutes for Thursday are up on the site.\"",
+    line: '"Minutes for Thursday are up on the site."',
     scam: false,
     tell: "Council switchboard, public information. Let it through.",
   },
@@ -83,13 +97,20 @@ const CALLS: Call[] = [
     id: "c9",
     who: "ROSEWOOD LEDGER — DESK",
     number: "01632 960 412",
-    line: "\"It's the desk. New number. Send the OTP over to this one, quickly.\"",
+    line: '"It\'s the desk. New number. Send the OTP over to this one, quickly."',
     scam: true,
     tell: "One digit off your own newsroom, and a rush at the end. That digit is the whole tell.",
   },
 ];
 
 const RING_TICKS = 34; // 90ms ticks before a call connects on its own
+
+const MARKET_BACKGROUND = {
+  backgroundImage: `url(${marketbg})`,
+  backgroundSize: "contain",
+  backgroundPosition: "center",
+  imageRendering: "pixelated" as const,
+};
 
 function CallDrop({ api }: { api: DrillApi }) {
   const [i, setI] = useState(0);
@@ -126,12 +147,15 @@ function CallDrop({ api }: { api: DrillApi }) {
   );
 
   // the ring-out clock: a call you leave alone eventually connects
-  useInterval(() => {
-    if (busy.current) return;
-    const ticks = Math.max(20, RING_TICKS - i * 2);
-    if (ring + 1 >= ticks) resolve(false);
-    else setRing(ring + 1);
-  }, api.running ? 90 : null);
+  useInterval(
+    () => {
+      if (busy.current) return;
+      const ticks = Math.max(20, RING_TICKS - i * 2);
+      if (ring + 1 >= ticks) resolve(false);
+      else setRing(ring + 1);
+    },
+    api.running ? 90 : null,
+  );
 
   const onMove = useCallback(
     (e: React.PointerEvent) => {
@@ -155,7 +179,14 @@ function CallDrop({ api }: { api: DrillApi }) {
 
   return (
     <div
-      style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...MARKET_BACKGROUND,
+      }}
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerLeave={onUp}
@@ -219,7 +250,13 @@ function CallDrop({ api }: { api: DrillApi }) {
           </div>
         </div>
 
-        <div style={{ marginTop: 6, borderTop: `2px solid ${C.ink}`, paddingTop: 6 }}>
+        <div
+          style={{
+            marginTop: 6,
+            borderTop: `2px solid ${C.ink}`,
+            paddingTop: 6,
+          }}
+        >
           <Mono size={15} color={C.ink}>
             {call.number}
           </Mono>
@@ -230,11 +267,24 @@ function CallDrop({ api }: { api: DrillApi }) {
           </div>
         </div>
 
-        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}>
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
           <Mono size={12} color={C.paper4}>
             CONNECTING
           </Mono>
-          <PixelMeter value={ring / ticks} width={130} height={10} cells={13} fill={C.red} />
+          <PixelMeter
+            value={ring / ticks}
+            width={130}
+            height={10}
+            cells={13}
+            fill={C.red}
+          />
           <div style={{ flex: 1 }} />
           <button
             type="button"
@@ -257,7 +307,14 @@ function CallDrop({ api }: { api: DrillApi }) {
         </div>
       </div>
 
-      <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)" }}>
+      <div
+        style={{
+          position: "absolute",
+          bottom: 6,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
         <Mono size={12} color={C.paper4}>
           LEAVE A REAL CALL ALONE — IT CONNECTS BY ITSELF
         </Mono>
@@ -280,13 +337,17 @@ type Reach = {
   label: string;
 };
 
-const OTP_TELL = "Nobody legitimate ever needs your one-time code. Not the bank, not support, not the desk.";
-const POPUP_TELL = "That pop-up is there to move your eyes off the code. Leave it alone and watch the hands.";
+const OTP_TELL =
+  "Nobody legitimate ever needs your one-time code. Not the bank, not support, not the desk.";
+const POPUP_TELL =
+  "That pop-up is there to move your eyes off the code. Leave it alone and watch the hands.";
 const POPUPS = ["YOU WON!", "FREE SPINS", "TAP TO CLAIM", "1 NEW MATCH"];
 const TOTAL_REACHES = 12;
 
 function HandsOff({ api }: { api: DrillApi }) {
-  const [code] = useState(() => String(Math.floor(100000 + Math.random() * 899999)));
+  const [code] = useState(() =>
+    String(Math.floor(100000 + Math.random() * 899999)),
+  );
   const [reaches, setReaches] = useState<Reach[]>([]);
   const [slaps, setSlaps] = useState(0);
   const [steals, setSteals] = useState(0);
@@ -299,8 +360,13 @@ function HandsOff({ api }: { api: DrillApi }) {
       if (!api.running) return;
       const r = reaches.find((x) => x.id === id);
       if (!r || r.slapped) return;
-      setReaches((cur) => cur.map((x) => (x.id === id ? { ...x, slapped: true } : x)));
-      window.setTimeout(() => setReaches((cur) => cur.filter((x) => x.id !== id)), 180);
+      setReaches((cur) =>
+        cur.map((x) => (x.id === id ? { ...x, slapped: true } : x)),
+      );
+      window.setTimeout(
+        () => setReaches((cur) => cur.filter((x) => x.id !== id)),
+        180,
+      );
       if (r.kind === "popup") {
         api.call(false, POPUP_TELL);
         return;
@@ -311,65 +377,79 @@ function HandsOff({ api }: { api: DrillApi }) {
     [reaches, api],
   );
 
-  useInterval(() => {
-    // hands come faster, and later on they come in pairs
-    const speed = 1 + Math.min(.5, spawned.current * 0.14);
+  useInterval(
+    () => {
+      // hands come faster, and later on they come in pairs
+      const speed = 1 + Math.min(0.5, spawned.current * 0.14);
 
-    const keep: Reach[] = [];
-    for (const r of reaches) {
-      if (r.slapped) {
-        keep.push(r);
-        continue;
-      }
-      const dx = r.tx - r.x;
-      const dy = r.ty - r.y;
-      const len = Math.hypot(dx, dy);
-      if (len <= 4) {
-        if (r.kind === "hand") {
-          setSteals((n) => n + 1);
-          api.call(false, OTP_TELL);
+      const keep: Reach[] = [];
+      for (const r of reaches) {
+        if (r.slapped) {
+          keep.push(r);
+          continue;
         }
-        continue; // a pop-up that reaches the middle just fizzles out
-      }
-      keep.push({ ...r, x: r.x + (dx / len) * speed, y: r.y + (dy / len) * speed });
-    }
-
-    if (wait.current <= 0 && spawned.current < TOTAL_REACHES) {
-      const pair = spawned.current > 6 && Math.random() < 0.35 ? 2 : 1;
-      for (let k = 0; k < pair && spawned.current < TOTAL_REACHES; k++) {
-        const decoy = spawned.current > 2 && Math.random() < 0.28;
-        const side = Math.floor(Math.random() * 4);
-        const from =
-          side === 0
-            ? { x: 4, y: 12 + Math.random() * 66 }
-            : side === 1
-              ? { x: 94, y: 12 + Math.random() * 66 }
-              : side === 2
-                ? { x: 12 + Math.random() * 72, y: 6 }
-                : { x: 12 + Math.random() * 72, y: 86 };
+        const dx = r.tx - r.x;
+        const dy = r.ty - r.y;
+        const len = Math.hypot(dx, dy);
+        if (len <= 4) {
+          if (r.kind === "hand") {
+            setSteals((n) => n + 1);
+            api.call(false, OTP_TELL);
+          }
+          continue; // a pop-up that reaches the middle just fizzles out
+        }
         keep.push({
-          id: seq.current++,
-          kind: decoy ? "popup" : "hand",
-          x: from.x,
-          y: from.y,
-          tx: decoy ? 50 + (Math.random() * 20 - 10) : 50,
-          ty: decoy ? 50 + (Math.random() * 20 - 10) : 48,
-          slapped: false,
-          label: decoy ? POPUPS[spawned.current % POPUPS.length] : "",
+          ...r,
+          x: r.x + (dx / len) * speed,
+          y: r.y + (dy / len) * speed,
         });
-        spawned.current += 1;
       }
-      wait.current = spawned.current > 6 ? 7 : 11;
-    } else {
-      wait.current -= 1;
-    }
 
-    setReaches(keep);
-    if (spawned.current >= TOTAL_REACHES && !keep.length) api.finish();
-  }, api.running ? 90 : null);
+      if (wait.current <= 0 && spawned.current < TOTAL_REACHES) {
+        const pair = spawned.current > 6 && Math.random() < 0.35 ? 2 : 1;
+        for (let k = 0; k < pair && spawned.current < TOTAL_REACHES; k++) {
+          const decoy = spawned.current > 2 && Math.random() < 0.28;
+          const side = Math.floor(Math.random() * 4);
+          const from =
+            side === 0
+              ? { x: 4, y: 12 + Math.random() * 66 }
+              : side === 1
+                ? { x: 94, y: 12 + Math.random() * 66 }
+                : side === 2
+                  ? { x: 12 + Math.random() * 72, y: 6 }
+                  : { x: 12 + Math.random() * 72, y: 86 };
+          keep.push({
+            id: seq.current++,
+            kind: decoy ? "popup" : "hand",
+            x: from.x,
+            y: from.y,
+            tx: decoy ? 50 + (Math.random() * 20 - 10) : 50,
+            ty: decoy ? 50 + (Math.random() * 20 - 10) : 48,
+            slapped: false,
+            label: decoy ? POPUPS[spawned.current % POPUPS.length] : "",
+          });
+          spawned.current += 1;
+        }
+        wait.current = spawned.current > 6 ? 7 : 11;
+      } else {
+        wait.current -= 1;
+      }
+
+      setReaches(keep);
+      if (spawned.current >= TOTAL_REACHES && !keep.length) api.finish();
+    },
+    api.running ? 90 : null,
+  );
 
   return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        ...MARKET_BACKGROUND,
+      }}
+    >
       {/* the code, dead centre, where every hand is headed */}
       <div
         style={{
@@ -427,7 +507,11 @@ function HandsOff({ api }: { api: DrillApi }) {
           key={r.id}
           type="button"
           data-interactive={r.kind === "popup" ? "popup" : "grab-hand"}
-          aria-label={r.kind === "popup" ? `Button — Pop-up: ${r.label}` : "Button — Slap the hand away"}
+          aria-label={
+            r.kind === "popup"
+              ? `Button — Pop-up: ${r.label}`
+              : "Button — Slap the hand away"
+          }
           onClick={() => swat(r.id)}
           style={{
             position: "absolute",
@@ -445,7 +529,12 @@ function HandsOff({ api }: { api: DrillApi }) {
             zIndex: 2,
           }}
         >
-          <PixelSprite name={r.kind === "popup" ? "popup" : r.slapped ? "handSlap" : "hand"} scale={2} />
+          <PixelSprite
+            name={
+              r.kind === "popup" ? "popup" : r.slapped ? "handSlap" : "hand"
+            }
+            scale={2}
+          />
           {r.kind === "popup" ? (
             <Mono size={12} color={C.white}>
               {r.label}
@@ -461,7 +550,8 @@ export const MARKET_DRILLS: Drill[] = [
   {
     id: "calldrop",
     name: "CALL DROP",
-    objective: "Flick the scam calls away before they connect. Leave the real ones.",
+    objective:
+      "Flick the scam calls away before they connect. Leave the real ones.",
     how: [
       "Drag a call upward — or press DROP — to cut it off.",
       "A genuine call connects on its own if you leave it alone.",
