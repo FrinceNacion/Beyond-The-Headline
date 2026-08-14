@@ -357,8 +357,8 @@ export function CommunityMap({
                 </div>
 
                 <div className={active ? "bth-pulse" : undefined} style={{ position: "relative", padding: 1 }}>
-                  <CastShadow name={cs.sprite} scale={NODE_SCALE} />
-                  <PixelSprite name={cs.sprite} scale={NODE_SCALE} desaturate={locked} title={cs.building} />
+                  <CastShadow name={cs.sprite} scale={cs.spriteScale ?? NODE_SCALE} />
+                  <PixelSprite name={cs.sprite} scale={cs.spriteScale ?? NODE_SCALE} desaturate={locked} title={cs.building} />
                   {solved ? (
                     <div style={{ position: "absolute", left: -4, top: -12 }}>
                       <div
