@@ -4,6 +4,7 @@ export const bakeryCase: CaseDef = {
   id: "bakery",
   building: "Rosewood Bakery",
   sprite: "bakery",
+  spriteScale: 3,
   title: "The Rat In The Flour",
   tag: "CASE 08",
   brief: "A viral post says the neighbourhood bakery is a health hazard. Is it?",

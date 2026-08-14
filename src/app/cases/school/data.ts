@@ -8,6 +8,7 @@ export const schoolCase: CaseDef = {
   id: "school",
   building: "Rosewood High",
   sprite: "school",
+  spriteScale: 3,
   title: "Written By Nobody",
   tag: "CASE 07",
   brief: "The group chat is full of AI-made stuff this week. Can you tell what's real?",

@@ -4,6 +4,7 @@ export const policeCase: CaseDef = {
   id: "police",
   building: "5th Precinct",
   sprite: "police",
+  spriteScale: 2.3,
   title: "Crime Wave, Allegedly",
   tag: "CASE 06",
   brief: "Two true numbers, arranged to tell a lie.",
