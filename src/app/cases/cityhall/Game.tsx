@@ -72,7 +72,7 @@ function PrivacyRescue({ api }: { api: DrillApi }) {
   useInterval(() => {
     // everything speeds up as the round runs on, the stranger fastest of all
     const step = 1 + Math.min(0.12, resolved.current * 0.16); // speed ng buble (infos)
-    const reach = 1 + Math.min(0.5, resolved.current * 0.28); // speed ng snoop
+    const reach = 1 + Math.min(0.05, resolved.current * 0.07); // speed ng snoop
     // and the drift gets less predictable the longer you leave a detail out
     const jitter = Math.min(0.34, resolved.current * 0.045);
 
