@@ -380,7 +380,7 @@ function HandsOff({ api }: { api: DrillApi }) {
   useInterval(
     () => {
       // hands come faster, and later on they come in pairs
-      const speed = 1 + Math.min(0.5, spawned.current * 0.14);
+      const speed = 1 + Math.min(0.05, spawned.current * 0.07);
 
       const keep: Reach[] = [];
       for (const r of reaches) {
