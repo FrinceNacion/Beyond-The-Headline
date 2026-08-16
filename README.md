@@ -1,6 +1,5 @@
 
-  # Beyond the Headline\
-
+  # Beyond the Headline
   This is a code bundle for Beyond the Headline.
 
   ## Running the code
