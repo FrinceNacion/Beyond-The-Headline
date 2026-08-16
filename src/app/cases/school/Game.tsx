@@ -2,6 +2,17 @@ import React, { useCallback, useMemo, useState } from "react";
 import { C, speckle } from "../../game/palette";
 import { Body, Mono, PixelButton, PixelSprite } from "../../components/Pixel";
 import schoolbg from "../../../assets/backgrounds/school.png";
+import g1 from "../../../assets/ai_game_asset/g1_chatbot_stat.png";
+import g2 from "../../../assets/ai_game_asset/g2_uniform_paragraphs.png";
+import g3 from "../../../assets/ai_game_asset/g3_garbled_trophy.png";
+import g4 from "../../../assets/ai_game_asset/g4_nameless_email.png";
+import g5 from "../../../assets/ai_game_asset/g5_hallucinated_chapter.png";
+import r1 from "../../../assets/ai_game_asset/r1_six_finger_hand.png";
+import r2 from "../../../assets/ai_game_asset/r2_principal_quote.png";
+import r3 from "../../../assets/ai_game_asset/r3_chatbot_wrong_date.png";
+import r4 from "../../../assets/ai_game_asset/r4_blurry_menu.png";
+import r5 from "../../../assets/ai_game_asset/r5_repeating_recap.png";
+import r6 from "../../../assets/ai_game_asset/r6_handwritten_note.png";
 import { StageShell } from "../arcade/StageShell";
 import type { Drill, DrillApi, StageResult } from "../arcade/stage";
 import type { CaseDef } from "../../game/cases";
@@ -24,32 +35,36 @@ const SCHOOL_BACKGROUND = {
 
 /* ------------------------------------------------------------- drill 1: REAL OR AI? */
 
-type Round2 = { id: string; claim: string; real: boolean; tell: string };
+type Round2 = { id: string; claim: string; image: string; real: boolean; tell: string };
 
 const REAL_OR_AI: Round2[] = [
   {
     id: "r1",
     claim:
       "Photo caption: three students holding a banner — one hand has six fingers.",
+    image: r1,
     real: false,
     tell: "AI image tools still get hands wrong more than anything else.",
   },
   {
     id: "r2",
     claim:
-      'Quote from the principal: "We are committed to fostering excellence."',
+      'Quote from a simple person about sucess',
+    image: r2,
     real: true,
     tell: "Bland, but that's just how principals actually talk.",
   },
   {
     id: "r3",
     claim: 'Chatbot answer: "The French Revolution began in 1812."',
+    image: r3,
     real: false,
     tell: "Confident and wrong — that's a hallucinated date, not a typo.",
   },
   {
     id: "r4",
     claim: "A blurry phone photo of the cafeteria menu board, badly lit.",
+    image: r4,
     real: true,
     tell: "Ordinary bad photography isn't a tell by itself.",
   },
@@ -57,6 +72,7 @@ const REAL_OR_AI: Round2[] = [
     id: "r5",
     claim:
       "Sports recap article: the exact same sentence structure repeats four paragraphs in a row.",
+    image: r5,
     real: false,
     tell: "Real writers vary their rhythm without noticing — AI text often doesn't.",
   },
@@ -64,6 +80,7 @@ const REAL_OR_AI: Round2[] = [
     id: "r6",
     claim:
       "A handwritten note pinned to the noticeboard, slightly crooked in the scan.",
+    image: r6,
     real: true,
     tell: "Messy and human. Nothing here reads machine-made.",
   },
@@ -74,6 +91,7 @@ const REAL_OR_AI: Round2[] = [
 type Round3 = {
   id: string;
   claim: string;
+  image: string;
   options: [string, string, string];
   correct: 0 | 1 | 2;
   tell: string;
@@ -83,6 +101,7 @@ const GIVEAWAY: Round3[] = [
   {
     id: "g1",
     claim: 'Chatbot says: "Studies show 94% of teachers agree."',
+    image: g1,
     options: [
       "No study is named or linked",
       "It's too short",
@@ -95,6 +114,7 @@ const GIVEAWAY: Round3[] = [
     id: "g2",
     claim:
       "An article about the school play, but every paragraph is exactly the same length.",
+    image: g2,
     options: [
       "The paragraphs are suspiciously even",
       "It mentions the school by name",
@@ -107,6 +127,7 @@ const GIVEAWAY: Round3[] = [
     id: "g3",
     claim:
       "A photo of the trophy case — the engraving on one trophy is garbled, not real words.",
+    image: g3,
     options: [
       "The photo is in colour",
       "The engraved text is garbled nonsense",
@@ -119,6 +140,7 @@ const GIVEAWAY: Round3[] = [
     id: "g4",
     claim:
       'An email "from the school" signed only "The Administration," no name attached.',
+    image: g4,
     options: [
       "It uses formal language",
       "It was sent in the morning",
@@ -131,6 +153,7 @@ const GIVEAWAY: Round3[] = [
     id: "g5",
     claim:
       "A chatbot's summary of a book describes a chapter that doesn't exist in the book.",
+    image: g5,
     options: [
       "The summary is long",
       "It uses big words",
@@ -150,6 +173,7 @@ function TapCard({
   n,
   total,
   eyebrow,
+  image,
   claim,
   options,
   onPick,
@@ -157,6 +181,7 @@ function TapCard({
   n: number;
   total: number;
   eyebrow: string;
+  image?: string;
   claim: string;
   options: { label: string; onClick: () => void }[];
   onPick: boolean; // true while a pick is being resolved — buttons disabled
@@ -187,6 +212,31 @@ function TapCard({
             {n}/{total} · {eyebrow}
           </Mono>
         </div>
+
+        {image ? (
+          <div
+            style={{
+              marginTop: 8,
+              boxShadow: `0 0 0 2px ${C.ink}`,
+              overflow: "hidden",
+            }}
+          >
+            
+            <img
+            
+              src={image}
+              alt=""
+              style={{
+                display: "block",
+                width: "100%",
+                height: 140,
+                objectFit: "cover",
+                imageRendering: "pixelated",
+              }}
+            />
+          </div>
+        ) : null}
+
         <div
           style={{
             marginTop: 8,
@@ -195,7 +245,7 @@ function TapCard({
             boxShadow: `0 0 0 2px ${C.ink}`,
           }}
         >
-          <Body size={15} color={C.ink}>
+          <Body size={image ? 13 : 15} color={C.ink}>
             {claim}
           </Body>
         </div>
@@ -254,6 +304,7 @@ function RealOrAi({ api }: { api: DrillApi }) {
       n={idx + 1}
       total={REAL_OR_AI.length}
       eyebrow="REAL OR AI-MADE?"
+      image={round.image}
       claim={round.claim}
       onPick={resolving}
       options={[
@@ -292,6 +343,7 @@ function WhatsTheGiveaway({ api }: { api: DrillApi }) {
       n={idx + 1}
       total={GIVEAWAY.length}
       eyebrow="THIS IS AI-MADE. WHAT'S THE GIVEAWAY?"
+      image={round.image}
       claim={round.claim}
       onPick={resolving}
       options={round.options.map((label, i) => ({
