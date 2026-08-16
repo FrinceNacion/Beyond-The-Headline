@@ -308,7 +308,7 @@ export function CommunityMap({
         <div data-layer="fg" style={layerStyle("fg")}>
           {CASES.map((cs, i) => {
             const solved = progress.includes(cs.id);
-            const locked = i > 0 && !progress.includes(CASES[i - 1].id);
+            const locked = false;
             const active = i === activeIndex;
             const n = NODES[i];
             return (
